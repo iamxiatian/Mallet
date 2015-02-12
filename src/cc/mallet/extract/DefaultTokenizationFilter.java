@@ -7,11 +7,12 @@
 package cc.mallet.extract;
 
 
-import java.io.Serializable;
-
 import cc.mallet.types.Label;
 import cc.mallet.types.LabelAlphabet;
 import cc.mallet.types.Sequence;
+
+import java.io.Serializable;
+
 /**
  * Created: Nov 12, 2004
  *
@@ -20,43 +21,40 @@ import cc.mallet.types.Sequence;
  */
 public class DefaultTokenizationFilter implements TokenizationFilter, Serializable {
 
-  public LabeledSpans constructLabeledSpans (LabelAlphabet dict, Object document, Label backgroundTag,
-                                                    Tokenization input, Sequence seq)
-  {
-    LabeledSpans labeled = new LabeledSpans (document);
-    addSpansFromTags (labeled, input, seq, dict, backgroundTag);
-    return labeled;
-  }
-  
+    public LabeledSpans constructLabeledSpans(LabelAlphabet dict, Object document, Label backgroundTag,
+                                              Tokenization input, Sequence seq) {
+        LabeledSpans labeled = new LabeledSpans(document);
+        addSpansFromTags(labeled, input, seq, dict, backgroundTag);
+        return labeled;
+    }
 
-  private void addSpansFromTags (LabeledSpans labeled, Tokenization input, Sequence tags, LabelAlphabet dict,
-                                 Label backgroundTag)
-   {
-     int i = 0;
-     int docidx = 0;
-     while (i < tags.size()) {
-       Label thisTag = dict.lookupLabel (tags.get(i).toString());
-       int startTokenIdx = i;
-       while (i < tags.size()) {
-         Label nextTag = dict.lookupLabel (tags.get(i).toString ());
-         if (thisTag != nextTag) break;
-         i++;
-       }
-       int endTokenIdx = i;
-       Span span = input.subspan(startTokenIdx, endTokenIdx);
-       addBackgroundIfNecessary (labeled, (StringSpan) span, docidx, backgroundTag);
-       docidx = ((StringSpan) span).getEndIdx ();
-       labeled.add (new LabeledSpan (span, thisTag, thisTag == backgroundTag));
-     }
-   }
 
-   private void addBackgroundIfNecessary (LabeledSpans labeled, StringSpan span, int docidx, Label background)
-   {
-     int nextIdx = span.getStartIdx ();
-     if (docidx < nextIdx) {
-       Span newSpan = new StringSpan ((CharSequence) span.getDocument (), docidx, nextIdx);
-       labeled.add (new LabeledSpan (newSpan, background, true));
-     }
-   }
+    private void addSpansFromTags(LabeledSpans labeled, Tokenization input, Sequence tags, LabelAlphabet dict,
+                                  Label backgroundTag) {
+        int i = 0;
+        int docidx = 0;
+        while (i < tags.size()) {
+            Label thisTag = dict.lookupLabel(tags.get(i).toString());
+            int startTokenIdx = i;
+            while (i < tags.size()) {
+                Label nextTag = dict.lookupLabel(tags.get(i).toString());
+                if (thisTag != nextTag) break;
+                i++;
+            }
+            int endTokenIdx = i;
+            Span span = input.subspan(startTokenIdx, endTokenIdx);
+            addBackgroundIfNecessary(labeled, (StringSpan) span, docidx, backgroundTag);
+            docidx = ((StringSpan) span).getEndIdx();
+            labeled.add(new LabeledSpan(span, thisTag, thisTag == backgroundTag));
+        }
+    }
+
+    private void addBackgroundIfNecessary(LabeledSpans labeled, StringSpan span, int docidx, Label background) {
+        int nextIdx = span.getStartIdx();
+        if (docidx < nextIdx) {
+            Span newSpan = new StringSpan((CharSequence) span.getDocument(), docidx, nextIdx);
+            labeled.add(new LabeledSpan(newSpan, background, true));
+        }
+    }
 
 }

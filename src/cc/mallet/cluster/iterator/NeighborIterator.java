@@ -1,9 +1,9 @@
 package cc.mallet.cluster.iterator;
 
-import java.util.Iterator;
-
 import cc.mallet.cluster.Clustering;
 import cc.mallet.types.Instance;
+
+import java.util.Iterator;
 
 /**
  * Sample Instances with data objects equal to {@link Neighbor}s. This
@@ -12,22 +12,25 @@ import cc.mallet.types.Instance;
  *
  * @author "Aron Culotta" <culotta@degas.cs.umass.edu>
  * @version 1.0
- * @since 1.0
  * @see InstanceIterator
+ * @since 1.0
  */
 public abstract class NeighborIterator implements Iterator<Instance> {
-	protected Clustering clustering;
+    protected Clustering clustering;
 
-	/**
-	 *
-	 * @param clustering A true Clustering.
-	 * @return
-	 */
-	public NeighborIterator (Clustering clustering) {
-		this.clustering = clustering;
-	}
+    /**
+     * @param clustering A true Clustering.
+     * @return
+     */
+    public NeighborIterator(Clustering clustering) {
+        this.clustering = clustering;
+    }
 
-	protected Clustering getClustering () { return clustering; }
-	
-	public void remove () { throw new IllegalStateException ("This Iterator<Instance> does not support remove()."); }
+    protected Clustering getClustering() {
+        return clustering;
+    }
+
+    public void remove() {
+        throw new IllegalStateException("This Iterator<Instance> does not support remove().");
+    }
 }

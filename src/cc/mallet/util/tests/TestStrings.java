@@ -7,7 +7,9 @@
 package cc.mallet.util.tests;
 
 import cc.mallet.util.Strings;
-import junit.framework.*;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
 /**
  * Created: Jan 19, 2005
@@ -17,35 +19,31 @@ import junit.framework.*;
  */
 public class TestStrings extends TestCase {
 
-  public TestStrings (String name)
-  {
-    super (name);
-  }
-
-  public static Test suite ()
-  {
-    return new TestSuite (TestStrings.class);
-  }
-
-  public static void testCount ()
-  {
-    assertEquals (5, Strings.count ("abracadabra", 'a'));
-    assertEquals (0, Strings.count ("hocus pocus", 'z'));
-  }
-
-  public static void main (String[] args) throws Throwable
-  {
-    TestSuite theSuite;
-    if (args.length > 0) {
-      theSuite = new TestSuite ();
-      for (int i = 0; i < args.length; i++) {
-        theSuite.addTest (new TestStrings (args[i]));
-      }
-    } else {
-      theSuite = (TestSuite) suite ();
+    public TestStrings(String name) {
+        super(name);
     }
 
-    junit.textui.TestRunner.run (theSuite);
-  }
+    public static Test suite() {
+        return new TestSuite(TestStrings.class);
+    }
+
+    public static void testCount() {
+        assertEquals(5, Strings.count("abracadabra", 'a'));
+        assertEquals(0, Strings.count("hocus pocus", 'z'));
+    }
+
+    public static void main(String[] args) throws Throwable {
+        TestSuite theSuite;
+        if (args.length > 0) {
+            theSuite = new TestSuite();
+            for (int i = 0; i < args.length; i++) {
+                theSuite.addTest(new TestStrings(args[i]));
+            }
+        } else {
+            theSuite = (TestSuite) suite();
+        }
+
+        junit.textui.TestRunner.run(theSuite);
+    }
 
 }

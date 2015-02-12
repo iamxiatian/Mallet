@@ -8,9 +8,10 @@ package cc.mallet.util.search;
  * Search state with heuristic cost-to-completion.
  */
 public interface AStarState extends SearchState {
-  /**
-   * Get the cost to completion.
-   * @return the cost
-   */
-  public abstract double completionCost();
+    /**
+     * Get the cost to completion.
+     *
+     * @return the cost
+     */
+    public abstract double completionCost();
 }

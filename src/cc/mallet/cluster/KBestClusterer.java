@@ -5,15 +5,15 @@ import cc.mallet.types.InstanceList;
 
 /**
  * Return the K best predicted Clusterings
- * @author culotta
  *
+ * @author culotta
  */
 public abstract class KBestClusterer extends Clusterer {
-	
-	public KBestClusterer(Pipe instancePipe) {
-		super(instancePipe);
-	}
 
-	public abstract Clustering[] clusterKBest(InstanceList trainingSet, int k);
-	
+    public KBestClusterer(Pipe instancePipe) {
+        super(instancePipe);
+    }
+
+    public abstract Clustering[] clusterKBest(InstanceList trainingSet, int k);
+
 }

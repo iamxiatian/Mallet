@@ -6,55 +6,58 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-
 package cc.mallet.pipe;
 
-import java.io.*;
+import cc.mallet.types.Alphabet;
+import cc.mallet.types.FeatureSequence;
+import cc.mallet.types.Instance;
+import cc.mallet.types.TokenSequence;
 
-import cc.mallet.types.*;
-/** Convert a token sequence in the target field into a feature sequence in the target field.
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+/**
+ * Convert a token sequence in the target field into a feature sequence in the target field.
+ *
+ * @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
-public class Target2FeatureSequence extends Pipe implements Serializable
-{
+public class Target2FeatureSequence extends Pipe implements Serializable {
 
-	public Target2FeatureSequence ()
-	{
-		super (null, new Alphabet());
-	}
-	
-	public Instance pipe (Instance carrier)
-	{
-		//Object in = carrier.getData();
-		Object target = carrier.getTarget();
-		if (target instanceof FeatureSequence)
-			;																	// Nothing to do
-		else if (target instanceof TokenSequence) {
-			TokenSequence ts = (TokenSequence) target;
-			FeatureSequence fs = new FeatureSequence (getTargetAlphabet(), ts.size());
-			for (int i = 0; i < ts.size(); i++)
-				fs.add (ts.get(i).getText());
-			carrier.setTarget(fs);
-		} else {
-			throw new IllegalArgumentException ("Unrecognized target type.");
-		}
-		return carrier;
-	}
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 0;
 
-	// Serialization 
-	
-	private static final long serialVersionUID = 1;
-	private static final int CURRENT_SERIAL_VERSION = 0;
-	
-	private void writeObject (ObjectOutputStream out) throws IOException {
-		out.writeInt (CURRENT_SERIAL_VERSION);
-	}
-	
-	private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
-		int version = in.readInt ();
-	}
+    // Serialization
+
+    public Target2FeatureSequence() {
+        super(null, new Alphabet());
+    }
+
+    public Instance pipe(Instance carrier) {
+        //Object in = carrier.getData();
+        Object target = carrier.getTarget();
+        if (target instanceof FeatureSequence)
+            ;                                                                    // Nothing to do
+        else if (target instanceof TokenSequence) {
+            TokenSequence ts = (TokenSequence) target;
+            FeatureSequence fs = new FeatureSequence(getTargetAlphabet(), ts.size());
+            for (int i = 0; i < ts.size(); i++)
+                fs.add(ts.get(i).getText());
+            carrier.setTarget(fs);
+        } else {
+            throw new IllegalArgumentException("Unrecognized target type.");
+        }
+        return carrier;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(CURRENT_SERIAL_VERSION);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        int version = in.readInt();
+    }
 
 }

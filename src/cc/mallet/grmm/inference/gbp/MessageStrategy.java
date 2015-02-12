@@ -14,11 +14,13 @@ package cc.mallet.grmm.inference.gbp;
  */
 public interface MessageStrategy {
 
-  void sendMessage (RegionEdge edge);
+    void sendMessage(RegionEdge edge);
 
-  void setMessageArray (MessageArray oldMessages, MessageArray newMessages);
-  MessageArray getOldMessages ();
-  MessageArray getNewMessages ();
+    void setMessageArray(MessageArray oldMessages, MessageArray newMessages);
 
-  MessageArray averageMessages (RegionGraph rg, MessageArray oldMessages, MessageArray newMessages, double weight);
+    MessageArray getOldMessages();
+
+    MessageArray getNewMessages();
+
+    MessageArray averageMessages(RegionGraph rg, MessageArray oldMessages, MessageArray newMessages, double weight);
 }

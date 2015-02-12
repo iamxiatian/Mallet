@@ -6,61 +6,61 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.pipe.iterator;
 
 
+import cc.mallet.types.Instance;
+
 import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
 
-import cc.mallet.types.Instance;
+public class ArrayIterator implements Iterator<Instance> {
+    Iterator subIterator;
+    Object target;
+    int index;
 
-public class ArrayIterator implements Iterator<Instance>
-{
-	Iterator subIterator;
-  Object target;
-	int index;
-	
-	public ArrayIterator (List data, Object target)
-	{
-		this.subIterator = data.iterator ();
-		this.target = target;
-		this.index = 0;
-	}
+    public ArrayIterator(List data, Object target) {
+        this.subIterator = data.iterator();
+        this.target = target;
+        this.index = 0;
+    }
 
-	public ArrayIterator (List data)
-	{
-		this (data, null);
-	}
-	
-	public ArrayIterator (Object[] data, Object target)
-	{
-		this (java.util.Arrays.asList (data), target);
-	}
+    public ArrayIterator(List data) {
+        this(data, null);
+    }
 
-	public ArrayIterator (Object[] data)
-	{
-		this (data, null);
-	}
-	
+    public ArrayIterator(Object[] data, Object target) {
+        this(java.util.Arrays.asList(data), target);
+    }
 
-	public Instance next ()
-	{
-		URI uri = null;
-		try { uri = new URI ("array:" + index++); }
-		catch (Exception e) { e.printStackTrace(); throw new IllegalStateException(); }
-		return new Instance (subIterator.next(), target, uri, null);
-	}
+    public ArrayIterator(Object[] data) {
+        this(data, null);
+    }
 
-	public boolean hasNext ()	{	return subIterator.hasNext();	}
 
-	public void remove() { subIterator.remove(); }
-	
+    public Instance next() {
+        URI uri = null;
+        try {
+            uri = new URI("array:" + index++);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new IllegalStateException();
+        }
+        return new Instance(subIterator.next(), target, uri, null);
+    }
+
+    public boolean hasNext() {
+        return subIterator.hasNext();
+    }
+
+    public void remove() {
+        subIterator.remove();
+    }
+
 }
 

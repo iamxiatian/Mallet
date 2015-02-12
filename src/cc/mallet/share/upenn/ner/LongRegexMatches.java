@@ -1,10 +1,11 @@
 package cc.mallet.share.upenn.ner;
 
 
-import java.util.regex.*;
+import cc.mallet.pipe.Pipe;
+import cc.mallet.types.Instance;
+import cc.mallet.types.TokenSequence;
 
-import cc.mallet.pipe.*;
-import cc.mallet.types.*;
+import java.util.regex.Pattern;
 
 /**
  * Matches a regular expression which spans several tokens.
@@ -16,18 +17,18 @@ public class LongRegexMatches extends Pipe implements java.io.Serializable {
     int min; // how many tokens to merge for a match
     int max;
 
-    public LongRegexMatches (String featureName, Pattern regex, int min, int max) {
-		this.name = featureName;
-		this.regex = regex;
+    public LongRegexMatches(String featureName, Pattern regex, int min, int max) {
+        this.name = featureName;
+        this.regex = regex;
         this.min = min;
         this.max = max;
-	}
+    }
 
-    public Instance pipe (Instance carrier) {
+    public Instance pipe(Instance carrier) {
         TokenSequence ts = (TokenSequence) carrier.getData();
         boolean[] marked = new boolean[ts.size()]; // avoid setting features twice
 
-        for (int i=0; i < ts.size(); i++) {
+        for (int i = 0; i < ts.size(); i++) {
             // On reaching a new token, test all strings with at least
             // min tokens which end in the new token.
             StringBuffer sb = new StringBuffer();
@@ -38,18 +39,18 @@ public class LongRegexMatches extends Pipe implements java.io.Serializable {
                 sb.insert(0, ts.get(loc).getText()); // else prepend token
                 // On a match, mark all participating tokens.
                 if (length >= min && regex.matcher(sb.toString()).matches()) {
-                    for (int j=0; j<length; j++)
-                        marked[loc+j] = true;
+                    for (int j = 0; j < length; j++)
+                        marked[loc + j] = true;
                 }
             }
         }
 
         // Set feature on all tokens participating in any match
-        for (int i=0; i < ts.size(); i++)
+        for (int i = 0; i < ts.size(); i++)
             if (marked[i])
                 ts.get(i).setFeatureValue(name, 1.0);
-        
-		return carrier;
+
+        return carrier;
     }
 
 }

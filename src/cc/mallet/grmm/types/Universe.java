@@ -6,16 +6,15 @@
    information, see the file `LICENSE' included with this distribution. */
 package cc.mallet.grmm.types;
 
-import gnu.trove.TIntArrayList;
-import gnu.trove.TIntObjectHashMap;
-import gnu.trove.THashMap;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 
-import java.io.Serializable;
-import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.List;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A global mapping between variables and indices.
@@ -24,83 +23,70 @@ import java.util.ArrayList;
  */
 public class Universe implements Serializable {
 
-  private BidirectionalIntObjectMap variableAlphabet;
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 1;
+    public static Universe DEFAULT = new Universe();
+    static THashMap allProjectionCaches = new THashMap();
+    private BidirectionalIntObjectMap variableAlphabet;
 
-  public static Universe DEFAULT = new Universe ();
-
-  public Universe ()
-  {
-    variableAlphabet = new BidirectionalIntObjectMap ();
-  }
-
-  public static void resetUniverse()
-  {
-      DEFAULT = new Universe();
-      allProjectionCaches = new THashMap();
-  }
-
-  public int add (Variable var)
-  {
-    return variableAlphabet.lookupIndex (var, true);
-  }
-
-  public Variable get (int idx)
-  {
-    return (Variable) variableAlphabet.lookupObject (idx);
-  }
-
-  public int getIndex (Variable var)
-  {
-     return variableAlphabet.lookupIndex (var);
-  }
-
-  public int size ()
-  {
-    return variableAlphabet.size ();
-  }
-
-  private static final long serialVersionUID = 1;
-  private static final int CURRENT_SERIAL_VERSION = 1;
-
-  private void writeObject (ObjectOutputStream out) throws IOException
-  {
-    out.defaultWriteObject ();
-    out.writeInt (CURRENT_SERIAL_VERSION);
-    out.writeObject (variableAlphabet.toArray ());
-  }
-
-
-  private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException
-  {
-    in.defaultReadObject ();
-    int version = in.readInt ();
-
-    Object[] vars = (Object[]) in.readObject ();
-    variableAlphabet = new BidirectionalIntObjectMap (vars.length);
-    for (int vi = 0; vi < vars.length; vi++) {
-      add ((Variable) vars[vi]);
-    }
-  }
-
-  // maintaining global projection caches
-
-  // this can get dangerous if variables are thrown away willy nilly (as in test cases) -cas
-
-  static THashMap allProjectionCaches = new THashMap ();
-
-  public TIntObjectHashMap lookupProjectionCache (VarSet varSet)
-  {
-    List sizes = new ArrayList (varSet.size ());
-    for (int vi = 0; vi < varSet.size (); vi++) {
-      sizes.add (varSet.get(vi).getNumOutcomes ());
+    public Universe() {
+        variableAlphabet = new BidirectionalIntObjectMap();
     }
 
-    TIntObjectHashMap result = (TIntObjectHashMap) allProjectionCaches.get (sizes);
-    if (result == null) {
-      result = new TIntObjectHashMap ();
-      allProjectionCaches.put (sizes, result);
+    public static void resetUniverse() {
+        DEFAULT = new Universe();
+        allProjectionCaches = new THashMap();
     }
 
-    return result;
-  }
+    public int add(Variable var) {
+        return variableAlphabet.lookupIndex(var, true);
+    }
+
+    public Variable get(int idx) {
+        return (Variable) variableAlphabet.lookupObject(idx);
+    }
+
+    public int getIndex(Variable var) {
+        return variableAlphabet.lookupIndex(var);
+    }
+
+    public int size() {
+        return variableAlphabet.size();
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeInt(CURRENT_SERIAL_VERSION);
+        out.writeObject(variableAlphabet.toArray());
+    }
+
+    // maintaining global projection caches
+
+    // this can get dangerous if variables are thrown away willy nilly (as in test cases) -cas
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        int version = in.readInt();
+
+        Object[] vars = (Object[]) in.readObject();
+        variableAlphabet = new BidirectionalIntObjectMap(vars.length);
+        for (int vi = 0; vi < vars.length; vi++) {
+            add((Variable) vars[vi]);
+        }
+    }
+
+    public TIntObjectHashMap lookupProjectionCache(VarSet varSet) {
+        List sizes = new ArrayList(varSet.size());
+        for (int vi = 0; vi < varSet.size(); vi++) {
+            sizes.add(varSet.get(vi).getNumOutcomes());
+        }
+
+        TIntObjectHashMap result = (TIntObjectHashMap) allProjectionCaches.get(sizes);
+        if (result == null) {
+            result = new TIntObjectHashMap();
+            allProjectionCaches.put(sizes, result);
+        }
+
+        return result;
+    }
 }

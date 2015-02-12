@@ -9,20 +9,22 @@ package cc.mallet.pipe;
 
 import cc.mallet.types.Instance;
 
-/** Convert object in the target field into a floating-point numeric type
- *   @author David Mimno
+/**
+ * Convert object in the target field into a floating-point numeric type
+ *
+ * @author David Mimno
  */
 
 public class Target2Double extends Pipe {
 
-	public Instance pipe (Instance carrier) {
-		if (carrier.getTarget() != null) {
-			if (! (carrier.getTarget() instanceof String)) {
-				throw new IllegalArgumentException ("Target must be a string for conversion to Double");
-			}
-			carrier.setTarget( new Double((String) carrier.getTarget()) );
-		}
-		return carrier;
-	}
+    public Instance pipe(Instance carrier) {
+        if (carrier.getTarget() != null) {
+            if (!(carrier.getTarget() instanceof String)) {
+                throw new IllegalArgumentException("Target must be a string for conversion to Double");
+            }
+            carrier.setTarget(new Double((String) carrier.getTarget()));
+        }
+        return carrier;
+    }
 
 }

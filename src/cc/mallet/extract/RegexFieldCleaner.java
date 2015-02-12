@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 
 /**
  * A field cleaner that removes all occurrences of a given regex.
- *
+ * <p>
  * Created: Nov 26, 2004
  *
  * @author <A HREF="mailto:casutton@cs.umass.edu>casutton@cs.umass.edu</A>
@@ -18,23 +18,22 @@ import java.util.regex.Pattern;
  */
 public class RegexFieldCleaner implements FieldCleaner {
 
-  public static final String REMOVE_PUNCT = "\\p{Punct}+";
+    public static final String REMOVE_PUNCT = "\\p{Punct}+";
 
-  private Pattern badRegex;
+    private Pattern badRegex;
 
-  public RegexFieldCleaner (String regex) {
-    badRegex = Pattern.compile (regex);
-  }
+    public RegexFieldCleaner(String regex) {
+        badRegex = Pattern.compile(regex);
+    }
 
-  public RegexFieldCleaner (Pattern regex) {
-    badRegex = regex;
-  }
+    public RegexFieldCleaner(Pattern regex) {
+        badRegex = regex;
+    }
 
 
-  public String cleanFieldValue (String rawFieldValue)
-  {
-    String cleanString = badRegex.matcher (rawFieldValue).replaceAll ("");
-    return cleanString;
-  }
+    public String cleanFieldValue(String rawFieldValue) {
+        String cleanString = badRegex.matcher(rawFieldValue).replaceAll("");
+        return cleanString;
+    }
 
 }

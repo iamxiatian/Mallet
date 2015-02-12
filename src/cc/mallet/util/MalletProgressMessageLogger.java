@@ -1,6 +1,8 @@
 package cc.mallet.util;
 
-import java.util.logging.*;
+import java.util.logging.LogManager;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 /**
  * Created by IntelliJ IDEA.
@@ -9,25 +11,22 @@ import java.util.logging.*;
  * Time: 4:37:07 PM
  * To change this template use Options | File Templates.
  */
-public class MalletProgressMessageLogger extends MalletLogger{
-	protected MalletProgressMessageLogger (String name, String resourceBundleName)
-	{
-		super (name, resourceBundleName);
-	}
+public class MalletProgressMessageLogger extends MalletLogger {
+    protected MalletProgressMessageLogger(String name, String resourceBundleName) {
+        super(name, resourceBundleName);
+    }
 
-	public static Logger getLogger (String name)
-	{
-		MalletProgressMessageLogger mpml = new MalletProgressMessageLogger(name, null);
-		LogManager.getLogManager().addLogger(mpml);
-		return mpml;
-	}
+    public static Logger getLogger(String name) {
+        MalletProgressMessageLogger mpml = new MalletProgressMessageLogger(name, null);
+        LogManager.getLogManager().addLogger(mpml);
+        return mpml;
+    }
 
-	public void log(LogRecord logRecord)
-	{
-		// convert to subclass of logRecord, and pass it on..
-		// I'm sure this is losing information...
-		//System.out.println("MPML log record entered " +logRecord);
-		ProgressMessageLogRecord progressMessageLogRecord = new ProgressMessageLogRecord(logRecord);
+    public void log(LogRecord logRecord) {
+        // convert to subclass of logRecord, and pass it on..
+        // I'm sure this is losing information...
+        //System.out.println("MPML log record entered " +logRecord);
+        ProgressMessageLogRecord progressMessageLogRecord = new ProgressMessageLogRecord(logRecord);
         super.log(progressMessageLogRecord);
 //
 //		//getParent().log(progressMessageLogRecord);
@@ -61,6 +60,6 @@ public class MalletProgressMessageLogger extends MalletLogger{
 //			}
 //		}
 
-	}
+    }
 
 }

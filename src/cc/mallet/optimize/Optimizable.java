@@ -6,10 +6,8 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.optimize;
@@ -17,61 +15,63 @@ package cc.mallet.optimize;
 import java.util.Collection;
 
 
-public interface Optimizable
-{
-	public int getNumParameters ();
+public interface Optimizable {
+    public int getNumParameters();
 
-	public void getParameters (double[] buffer);
-	public double getParameter (int index);
+    public void getParameters(double[] buffer);
 
-	public void setParameters (double[] params);
-	public void setParameter (int index, double value);
+    public double getParameter(int index);
+
+    public void setParameters(double[] params);
+
+    public void setParameter(int index, double value);
 
 
-	public interface ByValue extends Optimizable
-	{
-		public double getValue ();
-	}
+    public interface ByValue extends Optimizable {
+        public double getValue();
+    }
 
-	public interface ByGradient extends Optimizable
-	{
-		public void getValueGradient (double[] buffer);
-	}
+    public interface ByGradient extends Optimizable {
+        public void getValueGradient(double[] buffer);
+    }
 
-	public interface ByGradientValue extends Optimizable
-	{
-		public void getValueGradient (double[] buffer);
-		public double getValue ();
-	}
+    public interface ByGradientValue extends Optimizable {
+        public void getValueGradient(double[] buffer);
 
-	public interface ByHessian extends Optimizable.ByGradientValue
-	{
-		public void getValueHessian (double[][] buffer);
-	}
+        public double getValue();
+    }
 
-	public interface ByVotedPerceptron extends Optimizable
-	{
-		public int getNumInstances ();
-		public void getValueGradientForInstance (int instanceIndex, double[] bufffer);
-	}
+    public interface ByHessian extends Optimizable.ByGradientValue {
+        public void getValueHessian(double[][] buffer);
+    }
 
-	public interface ByGISUpdate extends Optimizable
-	{
-		public double getValue();
-		public void getGISUpdate (double[] buffer);
-	}
+    public interface ByVotedPerceptron extends Optimizable {
+        public int getNumInstances();
 
-	public interface ByBatchGradient extends Optimizable {
-		public void getBatchValueGradient (double[] buffer, int batchIndex, int[] batchAssignments);
-		public double getBatchValue(int batchIndex, int[] batchAssignments);
-	}
+        public void getValueGradientForInstance(int instanceIndex, double[] bufffer);
+    }
 
-	// gsc: for computing gradient from batches in multiple threads
-	public interface ByCombiningBatchGradient extends Optimizable {
-		public void getBatchValueGradient (double[] buffer, int batchIndex, int[] batchAssignments);
-		public double getBatchValue(int batchIndex, int[] batchAssignments);
-		public void combineGradients (Collection<double[]> batchGradients, double[] buffer);
-		public int getNumBatches();
-	}
+    public interface ByGISUpdate extends Optimizable {
+        public double getValue();
+
+        public void getGISUpdate(double[] buffer);
+    }
+
+    public interface ByBatchGradient extends Optimizable {
+        public void getBatchValueGradient(double[] buffer, int batchIndex, int[] batchAssignments);
+
+        public double getBatchValue(int batchIndex, int[] batchAssignments);
+    }
+
+    // gsc: for computing gradient from batches in multiple threads
+    public interface ByCombiningBatchGradient extends Optimizable {
+        public void getBatchValueGradient(double[] buffer, int batchIndex, int[] batchAssignments);
+
+        public double getBatchValue(int batchIndex, int[] batchAssignments);
+
+        public void combineGradients(Collection<double[]> batchGradients, double[] buffer);
+
+        public int getNumBatches();
+    }
 
 }

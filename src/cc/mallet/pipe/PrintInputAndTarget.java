@@ -6,60 +6,56 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-
 package cc.mallet.pipe;
 
-import java.io.*;
-
-import cc.mallet.pipe.Pipe;
 import cc.mallet.types.Instance;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
 /**
  * Print the data and target fields of each instance.
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+ *
+ * @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
-public class PrintInputAndTarget extends Pipe implements Serializable
-{
-	String prefix = null;
+public class PrintInputAndTarget extends Pipe implements Serializable {
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 0;
+    String prefix = null;
 
-	public PrintInputAndTarget (String prefix)
-	{
-		this.prefix = prefix;
-	}
+    public PrintInputAndTarget(String prefix) {
+        this.prefix = prefix;
+    }
 
-	public PrintInputAndTarget ()
-	{
-	}
-	
-	public Instance pipe (Instance carrier)
-	{
-		 if (prefix != null)
-			 System.out.print (prefix);
-    String targetString = "<null>";
-    if (carrier.getTarget() != null)
-     targetString = carrier.getTarget().toString();
-		System.out.println ("name: " + carrier.getName() + 
-							"\ntarget: " + targetString + 
-							"\ninput: " + carrier.getData()  // Swapping order, since data often has a newline at the end -DM
-							);
-		return carrier;
-	}
-	
-	// Serialization 
-	
-	private static final long serialVersionUID = 1;
-	private static final int CURRENT_SERIAL_VERSION = 0;
-	
-	private void writeObject (ObjectOutputStream out) throws IOException {
-		out.writeInt (CURRENT_SERIAL_VERSION);
-		out.writeObject(prefix);
-	}
-	
-	private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
-		int version = in.readInt ();
-		prefix = (String) in.readObject();
-	}
-	
+    // Serialization
+
+    public PrintInputAndTarget() {
+    }
+
+    public Instance pipe(Instance carrier) {
+        if (prefix != null)
+            System.out.print(prefix);
+        String targetString = "<null>";
+        if (carrier.getTarget() != null)
+            targetString = carrier.getTarget().toString();
+        System.out.println("name: " + carrier.getName() +
+                "\ntarget: " + targetString +
+                "\ninput: " + carrier.getData()  // Swapping order, since data often has a newline at the end -DM
+        );
+        return carrier;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(CURRENT_SERIAL_VERSION);
+        out.writeObject(prefix);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        int version = in.readInt();
+        prefix = (String) in.readObject();
+    }
+
 }

@@ -6,52 +6,56 @@
    information, see the file `LICENSE' included with this distribution. */
 
 /**
-   Add a feature that is true if the token is the first in the sequence.
-   @author David Mimno
+ Add a feature that is true if the token is the first in the sequence.
+ @author David Mimno
  */
 
 package cc.mallet.pipe.tsf;
 
-import java.io.*;
+import cc.mallet.pipe.Pipe;
+import cc.mallet.types.Instance;
+import cc.mallet.types.Token;
+import cc.mallet.types.TokenSequence;
 
-import cc.mallet.pipe.*;
-import cc.mallet.types.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 public class TokenFirstPosition extends Pipe implements Serializable {
 
-	String featureName;
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 1;
+    String featureName;
 
-	public TokenFirstPosition (String featureName) {
-		this.featureName = featureName;
-	}
-	
-	public TokenFirstPosition () {
-	}
+    public TokenFirstPosition(String featureName) {
+        this.featureName = featureName;
+    }
 
-	public Instance pipe (Instance instance) {
+    // Serialization
 
-		TokenSequence sequence = (TokenSequence) instance.getData();
+    public TokenFirstPosition() {
+    }
 
-		Token token = sequence.get(0);
-		token.setFeatureValue(featureName, 1.0);
+    public Instance pipe(Instance instance) {
 
-		return instance;
-	}
-	
-	// Serialization 
-	
-	private static final long serialVersionUID = 1;
-	private static final int CURRENT_SERIAL_VERSION = 1;
-	
-	private void writeObject (ObjectOutputStream out) throws IOException {
-		out.writeInt (CURRENT_SERIAL_VERSION);
-		out.writeObject (featureName);
-	}
-	
-	private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
-		int version = in.readInt ();
-		featureName = (String) in.readObject ();
-	}
+        TokenSequence sequence = (TokenSequence) instance.getData();
+
+        Token token = sequence.get(0);
+        token.setFeatureValue(featureName, 1.0);
+
+        return instance;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(CURRENT_SERIAL_VERSION);
+        out.writeObject(featureName);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        int version = in.readInt();
+        featureName = (String) in.readObject();
+    }
 
 
 }

@@ -32,76 +32,71 @@
    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
    SUCH DAMAGE. */
 
-/** 
-   @author Aron Culotta <a href="mailto:culotta@cs.umass.edu">culotta@cs.umass.edu</a>
+/**
+ @author Aron Culotta <a href="mailto:culotta@cs.umass.edu">culotta@cs.umass.edu</a>
  */
 
 package cc.mallet.classify.evaluate;
 
 import java.awt.*;
-import java.util.*;
+import java.util.Vector;
 
 /**
  * Methods for a 2-D graph
  */
-public class Graph2 extends Graph
-{
-	int increment;
-	int position;
-	
-	
-	public Graph2(String title, int min, int max, String xLabel, String yLabel)
-	{
-		super(title, min, max, xLabel, yLabel);
-	}
-	
-	public void paint(Graphics g) 
-	{
-		super.paint(g);
-		
-		
-		Color temp = g.getColor();
-		
-		
-		for (int ii = 0; ii < items.size(); ii++) 	
-		{
-			Vector tempV = new Vector ((Vector)items.elementAt(ii));
-			GraphItem firstItem = (GraphItem)tempV.firstElement();
-			int firstAdjustedValue = bottom - (((firstItem.value - min)
-																					*(bottom - top))/(max - min));
-			increment = (right - left)/(tempV.size() - 1);
-			position = left;
+public class Graph2 extends Graph {
+    int increment;
+    int position;
+
+
+    public Graph2(String title, int min, int max, String xLabel, String yLabel) {
+        super(title, min, max, xLabel, yLabel);
+    }
+
+    public void paint(Graphics g) {
+        super.paint(g);
+
+
+        Color temp = g.getColor();
+
+
+        for (int ii = 0; ii < items.size(); ii++) {
+            Vector tempV = new Vector((Vector) items.elementAt(ii));
+            GraphItem firstItem = (GraphItem) tempV.firstElement();
+            int firstAdjustedValue = bottom - (((firstItem.value - min)
+                    * (bottom - top)) / (max - min));
+            increment = (right - left) / (tempV.size() - 1);
+            position = left;
 //			g.setColor(firstItem.color);
-			g.setColor(legend.color(ii)); // get color for this data series
-			g.drawString(firstItem.title, position - fm.stringWidth(firstItem.title),
-															firstAdjustedValue - 2);
-			g.fillOval(position - 2, firstAdjustedValue - 2, 4, 4);
-			//g.setColor(temp);
-			
-			for (int i = 0; i < tempV.size() - 1; i++) 
-			{
-				GraphItem thisItem = (GraphItem)tempV.elementAt(i);
-				int thisAdjustedValue = bottom - (((thisItem.value - min)*
-																					 (bottom - top))/(max - min));
-				GraphItem nextItem = (GraphItem)tempV.elementAt(i+1);
-				int nextAdjustedValue = bottom - (((nextItem.value - min)*
-																					 (bottom - top))/(max - min));
-				
-				g.drawLine(position, thisAdjustedValue,
-									 position+=increment, nextAdjustedValue);
-				//			g.setColor(nextItem.color);
-				if (nextAdjustedValue < thisAdjustedValue)
-			    g.drawString(nextItem.title, position - fm.stringWidth(nextItem.title),
-											 nextAdjustedValue + titleHeight + 4);
-				else
-			    g.drawString(nextItem.title, position - fm.stringWidth(nextItem.title),
-											 nextAdjustedValue - 4);
-				g.fillOval(position - 2, nextAdjustedValue - 2, 4, 4);
-				//	g.setColor(temp);
-			}
-			g.setColor(temp);
-		}
-	}
+            g.setColor(legend.color(ii)); // get color for this data series
+            g.drawString(firstItem.title, position - fm.stringWidth(firstItem.title),
+                    firstAdjustedValue - 2);
+            g.fillOval(position - 2, firstAdjustedValue - 2, 4, 4);
+            //g.setColor(temp);
+
+            for (int i = 0; i < tempV.size() - 1; i++) {
+                GraphItem thisItem = (GraphItem) tempV.elementAt(i);
+                int thisAdjustedValue = bottom - (((thisItem.value - min) *
+                        (bottom - top)) / (max - min));
+                GraphItem nextItem = (GraphItem) tempV.elementAt(i + 1);
+                int nextAdjustedValue = bottom - (((nextItem.value - min) *
+                        (bottom - top)) / (max - min));
+
+                g.drawLine(position, thisAdjustedValue,
+                        position += increment, nextAdjustedValue);
+                //			g.setColor(nextItem.color);
+                if (nextAdjustedValue < thisAdjustedValue)
+                    g.drawString(nextItem.title, position - fm.stringWidth(nextItem.title),
+                            nextAdjustedValue + titleHeight + 4);
+                else
+                    g.drawString(nextItem.title, position - fm.stringWidth(nextItem.title),
+                            nextAdjustedValue - 4);
+                g.fillOval(position - 2, nextAdjustedValue - 2, 4, 4);
+                //	g.setColor(temp);
+            }
+            g.setColor(temp);
+        }
+    }
 }
 
 

@@ -6,81 +6,84 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-
 package cc.mallet.types;
 
-import java.io.Serializable;
-import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 /**
- *  A simple {@link Sequence} implementation where all of the
- *  elements must be Labels.   Provides a convenient type-safe accessor {@link #getLabels}.
- *  Instances of LabelsSequence are immutable.
+ * A simple {@link Sequence} implementation where all of the
+ * elements must be Labels.   Provides a convenient type-safe accessor {@link #getLabels}.
+ * Instances of LabelsSequence are immutable.
  *
- *  @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+ * @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
-public class LabelsSequence implements Sequence, AlphabetCarrying, Serializable
-{
-	Labels[] seq;
-	
-  /**
-	 *  Create a LabelsSequence from an array.  The array is shallow-copied.
-	 */
-	public LabelsSequence (Labels[] seq)
-	{
-		for (int i = 0; i < seq.length-1; i++)
-			if (!Alphabet.alphabetsMatch(seq[i], seq[i+1])) 
-				throw new IllegalArgumentException ("Alphabets do not match");
-		this.seq = new Labels[seq.length];
-		System.arraycopy (seq, 0, this.seq, 0, seq.length);
-	}
+public class LabelsSequence implements Sequence, AlphabetCarrying, Serializable {
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 0;
+    Labels[] seq;
 
-  public LabelsSequence (LabelSequence seq)
-  {
-    this.seq = new Labels[seq.size()];
-    for (int i = 0; i < seq.length; i++) {
-      this.seq[i] = new Labels (new Label[] { seq.getLabelAtPosition (i) });
+    /**
+     * Create a LabelsSequence from an array.  The array is shallow-copied.
+     */
+    public LabelsSequence(Labels[] seq) {
+        for (int i = 0; i < seq.length - 1; i++)
+            if (!Alphabet.alphabetsMatch(seq[i], seq[i + 1]))
+                throw new IllegalArgumentException("Alphabets do not match");
+        this.seq = new Labels[seq.length];
+        System.arraycopy(seq, 0, this.seq, 0, seq.length);
     }
-  }
 
-	public Alphabet getAlphabet () { return seq[0].getAlphabet(); }
-	public Alphabet[] getAlphabets () { return seq[0].getAlphabets(); }
+    public LabelsSequence(LabelSequence seq) {
+        this.seq = new Labels[seq.size()];
+        for (int i = 0; i < seq.length; i++) {
+            this.seq[i] = new Labels(new Label[]{seq.getLabelAtPosition(i)});
+        }
+    }
 
-  public int size () { return seq.length; }
+    public Alphabet getAlphabet() {
+        return seq[0].getAlphabet();
+    }
 
-	public Object get (int i) { return seq[i]; }
+    public Alphabet[] getAlphabets() {
+        return seq[0].getAlphabets();
+    }
 
-	public Labels getLabels (int i) { return seq[i]; }
+    public int size() {
+        return seq.length;
+    }
 
-	public String toString ()
-	{
-		String ret = "LabelsSequence:\n";
-		for (int i = 0; i < seq.length; i++) {
-			ret += i+": ";
-			ret += seq[i].toString();
-			ret += "\n";
-		}
-		return ret;
-	}
+    public Object get(int i) {
+        return seq[i];
+    }
 
-  // Serialization
+    // Serialization
 
-  private static final long serialVersionUID = 1;
-  private static final int CURRENT_SERIAL_VERSION = 0;
+    public Labels getLabels(int i) {
+        return seq[i];
+    }
 
-  private void writeObject (ObjectOutputStream out) throws IOException {
-    out.writeInt(CURRENT_SERIAL_VERSION);
-    out.defaultWriteObject ();
-  }
+    public String toString() {
+        String ret = "LabelsSequence:\n";
+        for (int i = 0; i < seq.length; i++) {
+            ret += i + ": ";
+            ret += seq[i].toString();
+            ret += "\n";
+        }
+        return ret;
+    }
 
-  private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
-    int version = in.readInt ();
-    in.defaultReadObject ();
-  }
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(CURRENT_SERIAL_VERSION);
+        out.defaultWriteObject();
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        int version = in.readInt();
+        in.defaultReadObject();
+    }
 
 
 }

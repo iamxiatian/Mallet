@@ -6,18 +6,16 @@
    information, see the file `LICENSE' included with this distribution. */
 package cc.mallet.grmm.util;
 
-import gnu.trove.THashMap;
-import gnu.trove.TIntObjectHashMap;
-import gnu.trove.TObjectProcedure;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.procedure.TObjectProcedure;
 
-import java.util.Iterator;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A map that maps (int, int) --> object, where each (int,int) key
- *  is allowed to map to multiple objects.
- *
+ * is allowed to map to multiple objects.
+ * <p>
  * Created: Dec 14, 2005
  *
  * @author <A HREF="mailto:casutton@cs.umass.edu>casutton@cs.umass.edu</A>
@@ -25,50 +23,48 @@ import java.util.ArrayList;
  */
 public class CSIntInt2ObjectMultiMap {
 
-  private TIntObjectHashMap backing = new TIntObjectHashMap ();
+    private TIntObjectHashMap backing = new TIntObjectHashMap();
 
-  public void add (int key1, int key2, Object value)
-  {
-    TIntObjectHashMap inner = (TIntObjectHashMap) backing.get (key1);
-    if (inner == null) {
-      inner = new TIntObjectHashMap ();
-      backing.put (key1, inner);
+    public void add(int key1, int key2, Object value) {
+        TIntObjectHashMap inner = (TIntObjectHashMap) backing.get(key1);
+        if (inner == null) {
+            inner = new TIntObjectHashMap();
+            backing.put(key1, inner);
+        }
+
+        List lst = (List) inner.get(key2);
+        if (lst == null) {
+            lst = new ArrayList();
+            inner.put(key2, lst);
+        }
+
+        lst.add(value);
     }
 
-    List lst = (List) inner.get (key2);
-    if (lst == null) {
-      lst = new ArrayList ();
-      inner. put (key2, lst);
+    public List get(int key1, int key2) {
+        TIntObjectHashMap inner = (TIntObjectHashMap) backing.get(key1);
+        if (inner == null) {
+            return null;
+        } else {
+            return (List) inner.get(key2);
+        }
     }
 
-    lst.add (value);
-  }
-
-  public List get (int key1, int key2)
-  {
-    TIntObjectHashMap inner = (TIntObjectHashMap) backing.get (key1);
-    if (inner == null) {
-      return null;
-    } else {
-      return (List) inner.get (key2);
+    public int size() {
+        final int[] N = new int[]{0};
+        backing.forEachValue(new TObjectProcedure() {
+            public boolean execute(Object object) {
+                TIntObjectHashMap inner = (TIntObjectHashMap) object;
+                N[0] += inner.size();
+                return true;
+            }
+        });
+        return N[0];
     }
-  }
 
-  public int size ()
-  {
-    final int[] N = new int[]{0};
-    backing.forEachValue (new TObjectProcedure() {
-      public boolean execute (Object object)
-      {
-        TIntObjectHashMap inner = (TIntObjectHashMap) object;
-        N[0] += inner.size ();
-        return true;
-      }
-    });
-    return N[0];
-  }
+    public void clear() {
+        backing.clear();
+    }
 
-  public void clear () { backing.clear (); }
-  
-  // not yet serializable
+    // not yet serializable
 }

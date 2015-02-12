@@ -7,69 +7,71 @@
 
 package cc.mallet.pipe.iterator;
 
-import java.io.*;
-import java.util.Iterator;
-import java.net.URI;
+import cc.mallet.types.Instance;
 
-import cc.mallet.types.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.net.URI;
+import java.util.Iterator;
 
 /**
- * Very similar to the SimpleFileLineIterator, 
+ * Very similar to the SimpleFileLineIterator,
  * but skips lines that match a regular expression.
- * 
+ *
  * @author Gregory Druck
  */
 public class SelectiveFileLineIterator implements Iterator<Instance> {
 
-	BufferedReader reader = null;
-	int index = -1;
-	String currentLine = null;
-	boolean hasNextUsed = false;
-	String skipRegex;
-	
-	public SelectiveFileLineIterator (Reader reader, String skipRegex) {
-		this.reader = new BufferedReader (reader);
-		this.index = 0;
-		this.skipRegex = skipRegex;
-	}
+    BufferedReader reader = null;
+    int index = -1;
+    String currentLine = null;
+    boolean hasNextUsed = false;
+    String skipRegex;
 
-	public Instance next () {
-		if (!hasNextUsed) {
-			try {
-				currentLine = reader.readLine();
-				while (currentLine != null && currentLine.matches(skipRegex)) {
-					currentLine = reader.readLine();
-				}
-			}
-			catch (IOException e) {
-				throw new RuntimeException (e);
-			}
-		}
-		else {
-			hasNextUsed = false;
-		}
+    public SelectiveFileLineIterator(Reader reader, String skipRegex) {
+        this.reader = new BufferedReader(reader);
+        this.index = 0;
+        this.skipRegex = skipRegex;
+    }
 
-		URI uri = null;
-		try { uri = new URI ("array:" + index++); }
-		catch (Exception e) { throw new RuntimeException (e); }
-		return new Instance (currentLine, null, uri, null);
-	}
+    public Instance next() {
+        if (!hasNextUsed) {
+            try {
+                currentLine = reader.readLine();
+                while (currentLine != null && currentLine.matches(skipRegex)) {
+                    currentLine = reader.readLine();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            hasNextUsed = false;
+        }
 
-	public boolean hasNext ()	{	
-		hasNextUsed = true; 
-		try {
-			currentLine = reader.readLine();
-			while (currentLine != null && currentLine.matches(skipRegex)) {
-				currentLine = reader.readLine();
-			} 
-		}
-		catch (IOException e) {
-			throw new RuntimeException (e);
-		}
-		return (currentLine != null);	
-	}
-	
-	public void remove () {
-		throw new IllegalStateException ("This Iterator<Instance> does not support remove().");
-	}
+        URI uri = null;
+        try {
+            uri = new URI("array:" + index++);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return new Instance(currentLine, null, uri, null);
+    }
+
+    public boolean hasNext() {
+        hasNextUsed = true;
+        try {
+            currentLine = reader.readLine();
+            while (currentLine != null && currentLine.matches(skipRegex)) {
+                currentLine = reader.readLine();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return (currentLine != null);
+    }
+
+    public void remove() {
+        throw new IllegalStateException("This Iterator<Instance> does not support remove().");
+    }
 }

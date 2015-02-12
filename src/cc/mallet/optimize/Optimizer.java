@@ -6,34 +6,35 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.optimize;
 
 
-public interface Optimizer
-{
-	
-  // Returns true if it has converged
-	// TODO change this to "optimize"
-	public boolean optimize ();
-	public boolean optimize (int numIterations);
-	public boolean isConverged();
-	public Optimizable getOptimizable();
-	
-	@Deprecated // Figure out the right interface for this.  It is odd that 'sampleAssignments' reaches into InstanceList indices
-  public interface ByBatches {
-  	public boolean optimize (int numSamples, int[] sampleAssigments);
-  	public boolean optimize (int numIterations, int numSamples, int[] sampleAssignments);
-  }
-	
-  
-  
-  // Rest below is deprecated
+public interface Optimizer {
+
+    // Returns true if it has converged
+    // TODO change this to "optimize"
+    public boolean optimize();
+
+    public boolean optimize(int numIterations);
+
+    public boolean isConverged();
+
+    public Optimizable getOptimizable();
+
+    @Deprecated
+    // Figure out the right interface for this.  It is odd that 'sampleAssignments' reaches into InstanceList indices
+    public interface ByBatches {
+        public boolean optimize(int numSamples, int[] sampleAssigments);
+
+        public boolean optimize(int numIterations, int numSamples, int[] sampleAssignments);
+    }
+
+
+    // Rest below is deprecated
 
   /*
   public interface ByValue {

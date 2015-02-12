@@ -6,133 +6,126 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.classify.tests;
 
 //import edu.umass.cs.mallet.base.pipe.SerialPipe;
-import junit.framework.*;
-import java.net.URI;
+
+import cc.mallet.classify.Classifier;
+import cc.mallet.classify.ClassifierTrainer;
+import cc.mallet.classify.MaxEntTrainer;
+import cc.mallet.classify.Trial;
+import cc.mallet.pipe.iterator.RandomTokenSequenceIterator;
+import cc.mallet.types.Alphabet;
+import cc.mallet.types.Dirichlet;
+import cc.mallet.types.Instance;
+import cc.mallet.types.InstanceList;
+import cc.mallet.util.Randoms;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
 import java.util.Iterator;
 
-import cc.mallet.classify.*;
-import cc.mallet.pipe.*;
-import cc.mallet.pipe.iterator.ArrayIterator;
-import cc.mallet.pipe.iterator.PipeInputIterator;
-import cc.mallet.pipe.iterator.RandomTokenSequenceIterator;
-import cc.mallet.types.*;
-import cc.mallet.util.*;
+public class TestClassifiers extends TestCase {
+    public TestClassifiers(String name) {
+        super(name);
+    }
 
-public class TestClassifiers extends TestCase
-{
-	public TestClassifiers (String name)
-	{
-		super (name);
-	}
+    private static Alphabet dictOfSize(int size) {
+        Alphabet ret = new Alphabet();
+        for (int i = 0; i < size; i++)
+            ret.lookupIndex("feature" + i);
+        return ret;
+    }
 
-	private static Alphabet dictOfSize (int size)
-	{
-		Alphabet ret = new Alphabet ();
-		for (int i = 0; i < size; i++)
-			ret.lookupIndex ("feature"+i);
-		return ret;
-	}
-	
-	public void testRandomTrained ()
-	{
-		ClassifierTrainer[] trainers = new ClassifierTrainer[1];
-		//trainers[0] = new NaiveBayesTrainer();
-		trainers[0] = new MaxEntTrainer();
-		//trainers[2] = new DecisionTreeTrainer();
+    public static Test suite() {
+        return new TestSuite(TestClassifiers.class);
+    }
 
-		Alphabet fd = dictOfSize (3);
-		String[] classNames = new String[] {"class0", "class1", "class2"};
+    public static void main(String[] args) {
+        junit.textui.TestRunner.run(suite());
+    }
 
-		InstanceList ilist = new InstanceList (new Randoms(1), fd, classNames, 200);
+    public void testRandomTrained() {
+        ClassifierTrainer[] trainers = new ClassifierTrainer[1];
+        //trainers[0] = new NaiveBayesTrainer();
+        trainers[0] = new MaxEntTrainer();
+        //trainers[2] = new DecisionTreeTrainer();
 
-		InstanceList lists[] = ilist.split (new java.util.Random(2), new double[] {.5, .5});
-		//System.out.println ("Training set size = "+lists[0].size());
-		//System.out.println ("Testing set size = "+lists[1].size());
-		
-		Classifier[] classifiers = new Classifier[trainers.length];
-		for (int i = 0; i < trainers.length; i++)
-			classifiers[i] = trainers[i].train (lists[0]);
+        Alphabet fd = dictOfSize(3);
+        String[] classNames = new String[]{"class0", "class1", "class2"};
 
-		System.out.println ("Accuracy on training set:");
-		for (int i = 0; i < trainers.length; i++)
-			System.out.println (classifiers[i].getClass().getName()
-													+ ": " + new Trial (classifiers[i], lists[0]).getAccuracy());
+        InstanceList ilist = new InstanceList(new Randoms(1), fd, classNames, 200);
 
-		System.out.println ("Accuracy on testing set:");
-		for (int i = 0; i < trainers.length; i++)
-			System.out.println (classifiers[i].getClass().getName()
-													+ ": " + new Trial (classifiers[i], lists[1]).getAccuracy());
-	}
-	
-	public void testNewFeatures ()
-	  {
-	    ClassifierTrainer[] trainers = new ClassifierTrainer[1];
-	    trainers[0] = new MaxEntTrainer();
+        InstanceList lists[] = ilist.split(new java.util.Random(2), new double[]{.5, .5});
+        //System.out.println ("Training set size = "+lists[0].size());
+        //System.out.println ("Testing set size = "+lists[1].size());
 
-	    Alphabet fd = dictOfSize (3);
-	    String[] classNames = new String[] {"class0", "class1", "class2"};
+        Classifier[] classifiers = new Classifier[trainers.length];
+        for (int i = 0; i < trainers.length; i++)
+            classifiers[i] = trainers[i].train(lists[0]);
 
-	    Randoms r = new Randoms(1);
-	    InstanceList training = new InstanceList (r, fd, classNames, 50);
-	    expandDict (fd, 25);
+        System.out.println("Accuracy on training set:");
+        for (int i = 0; i < trainers.length; i++)
+            System.out.println(classifiers[i].getClass().getName()
+                    + ": " + new Trial(classifiers[i], lists[0]).getAccuracy());
 
-	    Classifier[] classifiers = new Classifier[trainers.length];
-	    for (int i = 0; i < trainers.length; i++)
-	      classifiers[i] = trainers[i].train (training);
+        System.out.println("Accuracy on testing set:");
+        for (int i = 0; i < trainers.length; i++)
+            System.out.println(classifiers[i].getClass().getName()
+                    + ": " + new Trial(classifiers[i], lists[1]).getAccuracy());
+    }
 
-	    System.out.println ("Accuracy on training set:");
-	    for (int i = 0; i < trainers.length; i++)
-	      System.out.println (classifiers[i].getClass().getName()
-	                          + ": " + new Trial (classifiers[i], training).getAccuracy());
+    public void testNewFeatures() {
+        ClassifierTrainer[] trainers = new ClassifierTrainer[1];
+        trainers[0] = new MaxEntTrainer();
 
-	    InstanceList testing = new InstanceList (training.getPipe ());
-	    Iterator<Instance> iter = new RandomTokenSequenceIterator (
-	      r,  new Dirichlet (fd, 2.0),
-	      30, 0,
-	      10, 50,
-	      classNames);
-	    testing.addThruPipe (iter);
+        Alphabet fd = dictOfSize(3);
+        String[] classNames = new String[]{"class0", "class1", "class2"};
 
-	    for (int i = 0; i < testing.size (); i++) {
-	      Instance inst = testing.get (i);
-	      System.out.println ("DATA:"+inst.getData());
-	    }
+        Randoms r = new Randoms(1);
+        InstanceList training = new InstanceList(r, fd, classNames, 50);
+        expandDict(fd, 25);
 
-	    System.out.println ("Accuracy on testing set:");
-	    for (int i = 0; i < trainers.length; i++)
-	      System.out.println (classifiers[i].getClass().getName()
-	                          + ": " + new Trial (classifiers[i], testing).getAccuracy());
-	  }
+        Classifier[] classifiers = new Classifier[trainers.length];
+        for (int i = 0; i < trainers.length; i++)
+            classifiers[i] = trainers[i].train(training);
 
- 
-  private void expandDict (Alphabet fd, int size)
-  {
-    fd.startGrowth ();
-    for (int i = 0; i < size; i++)
-      fd.lookupIndex ("feature"+i, true);
-  }
+        System.out.println("Accuracy on training set:");
+        for (int i = 0; i < trainers.length; i++)
+            System.out.println(classifiers[i].getClass().getName()
+                    + ": " + new Trial(classifiers[i], training).getAccuracy());
 
-  public static Test suite ()
-	{
-		return new TestSuite (TestClassifiers.class);
-	}
+        InstanceList testing = new InstanceList(training.getPipe());
+        Iterator<Instance> iter = new RandomTokenSequenceIterator(
+                r, new Dirichlet(fd, 2.0),
+                30, 0,
+                10, 50,
+                classNames);
+        testing.addThruPipe(iter);
 
-	protected void setUp ()
-	{
-	}
+        for (int i = 0; i < testing.size(); i++) {
+            Instance inst = testing.get(i);
+            System.out.println("DATA:" + inst.getData());
+        }
 
-	public static void main (String[] args)
-	{
-		junit.textui.TestRunner.run (suite());
-	}
-	
+        System.out.println("Accuracy on testing set:");
+        for (int i = 0; i < trainers.length; i++)
+            System.out.println(classifiers[i].getClass().getName()
+                    + ": " + new Trial(classifiers[i], testing).getAccuracy());
+    }
+
+    private void expandDict(Alphabet fd, int size) {
+        fd.startGrowth();
+        for (int i = 0; i < size; i++)
+            fd.lookupIndex("feature" + i, true);
+    }
+
+    protected void setUp() {
+    }
+
 }

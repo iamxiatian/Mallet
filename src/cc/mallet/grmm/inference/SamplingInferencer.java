@@ -7,16 +7,16 @@
 package cc.mallet.grmm.inference;
 
 
+import cc.mallet.grmm.types.*;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import cc.mallet.grmm.types.*;
-
 /**
  * Approximate inferencer for graphical models using sampling.
- *  A general inference engine that takes any Sampler engine, and performs
- *  approximate inference using its samples.
+ * A general inference engine that takes any Sampler engine, and performs
+ * approximate inference using its samples.
  * Created: Mar 28, 2005
  *
  * @author <A HREF="mailto:casutton@cs.umass.edu>casutton@cs.umass.edu</A>
@@ -24,60 +24,50 @@ import cc.mallet.grmm.types.*;
  */
 public class SamplingInferencer extends AbstractInferencer {
 
-  private int N;
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 1;
+    // Could save only sufficient statistics to save on memory
+    transient Assignment samples;
+    private int N;
+    private Sampler sampler;
 
-  private Sampler sampler;
+    public SamplingInferencer(Sampler sampler, int n) {
+        this.sampler = sampler;
+        N = n;
+    }
 
-  // Could save only sufficient statistics to save on memory
-  transient Assignment samples;
+    public void computeMarginals(FactorGraph mdl) {
+        samples = sampler.sample(mdl, N);
+    }
 
-  public SamplingInferencer (Sampler sampler, int n)
-  {
-    this.sampler = sampler;
-    N = n;
-  }
+    // Serialization garbage
 
-  public void computeMarginals (FactorGraph mdl)
-  {
-    samples = sampler.sample (mdl, N);
-  }
+    public Factor lookupMarginal(Variable var) {
+        return lookupMarginal(new HashVarSet(new Variable[]{var}));
+    }
 
-  public Factor lookupMarginal (Variable var)
-  {
-    return lookupMarginal (new HashVarSet (new Variable[] { var }));
-  }
+    // don't try this for large cliques
+    public Factor lookupMarginal(VarSet varSet) {
+        Factor mrgl = samples.marginalize(varSet);
+        AbstractTableFactor tbl = mrgl.asTable();
+        tbl.normalize();
+        return tbl;
+    }
 
-  // don't try this for large cliques
-  public Factor lookupMarginal (VarSet varSet)
-  {
-    Factor mrgl = samples.marginalize (varSet);
-    AbstractTableFactor tbl = mrgl.asTable ();
-    tbl.normalize ();
-    return tbl;
-  }
-  
-  // Serialization garbage
-
-  private static final long serialVersionUID = 1;
-  private static final int CURRENT_SERIAL_VERSION = 1;
-
-  private void writeObject (ObjectOutputStream out) throws IOException
-  {
-    out.writeInt (CURRENT_SERIAL_VERSION);
-    out.writeInt (N);
-    out.writeObject (sampler);
-  }
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(CURRENT_SERIAL_VERSION);
+        out.writeInt(N);
+        out.writeObject(sampler);
+    }
 
 
-  private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException
-  {
-    in.readInt ();  // read version
-    N = in.readInt ();
-    sampler = (Sampler) in.readObject ();
-  }
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.readInt();  // read version
+        N = in.readInt();
+        sampler = (Sampler) in.readObject();
+    }
 
-  public String toString ()
-  {
-    return "(SamplingInferencer: "+sampler+" )";
-  }
+    public String toString() {
+        return "(SamplingInferencer: " + sampler + " )";
+    }
 }

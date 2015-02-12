@@ -7,14 +7,14 @@
 package cc.mallet.grmm.types;
 
 
+import cc.mallet.util.Randoms;
+
 import java.util.Collection;
 import java.util.Iterator;
 
-import cc.mallet.util.Randoms;
-
 /**
  * An Abstract class from which new Factor classes can be subclassed.
- *
+ * <p>
  * Created: Sep 12, 2005
  *
  * @author <A HREF="mailto:casutton@cs.umass.edu>casutton@cs.umass.edu</A>
@@ -22,204 +22,172 @@ import cc.mallet.util.Randoms;
  */
 public abstract class AbstractFactor implements Factor {
 
-  protected VarSet vars;
+    protected VarSet vars;
 
-  protected AbstractFactor ()
-  {
-    vars = new HashVarSet ();
-  }
+    protected AbstractFactor() {
+        vars = new HashVarSet();
+    }
 
-  protected AbstractFactor (VarSet vars)
-  {
-    this.vars = vars;
-  }
+    protected AbstractFactor(VarSet vars) {
+        this.vars = vars;
+    }
 
-  protected abstract Factor extractMaxInternal (VarSet varSet);
+    protected abstract Factor extractMaxInternal(VarSet varSet);
 
-  protected abstract double lookupValueInternal (int i);
+    protected abstract double lookupValueInternal(int i);
 
-  protected abstract Factor marginalizeInternal (VarSet varsToKeep);
+    protected abstract Factor marginalizeInternal(VarSet varsToKeep);
 
-  public double value (Assignment assn)
-  {
-    return lookupValueInternal (assn.singleIndex ());
-  }
+    public double value(Assignment assn) {
+        return lookupValueInternal(assn.singleIndex());
+    }
 
-  public double value (AssignmentIterator it)
-  {
-    return lookupValueInternal (it.indexOfCurrentAssn ());
-  }
+    public double value(AssignmentIterator it) {
+        return lookupValueInternal(it.indexOfCurrentAssn());
+    }
 
-  public double phi (DenseAssignmentIterator it)
-  {
-    return lookupValueInternal (it.indexOfCurrentAssn ());
-  }
+    public double phi(DenseAssignmentIterator it) {
+        return lookupValueInternal(it.indexOfCurrentAssn());
+    }
 
-  public Factor marginalize (Variable vars[])
-  {
-    return marginalizeInternal (new HashVarSet (vars));
-  }
+    public Factor marginalize(Variable vars[]) {
+        return marginalizeInternal(new HashVarSet(vars));
+    }
 
-  public Factor marginalize (Collection vars)
-  {
-    return marginalizeInternal (new HashVarSet (vars));
-  }
+    public Factor marginalize(Collection vars) {
+        return marginalizeInternal(new HashVarSet(vars));
+    }
 
-  public Factor marginalize (Variable var)
-  {
-    return marginalizeInternal (new HashVarSet (new Variable[] { var }));
-  }
+    public Factor marginalize(Variable var) {
+        return marginalizeInternal(new HashVarSet(new Variable[]{var}));
+    }
 
-  public Factor marginalizeOut (Variable var)
-  {
-    HashVarSet vars = new HashVarSet (this.vars);
-    vars.remove (var);
-    return marginalizeInternal (vars);
-  }
+    public Factor marginalizeOut(Variable var) {
+        HashVarSet vars = new HashVarSet(this.vars);
+        vars.remove(var);
+        return marginalizeInternal(vars);
+    }
 
-  public Factor marginalizeOut (VarSet varset)
-  {
-    HashVarSet vars = new HashVarSet (this.vars);
-    vars.remove (varset);
-    return marginalizeInternal (vars);
-  }
+    public Factor marginalizeOut(VarSet varset) {
+        HashVarSet vars = new HashVarSet(this.vars);
+        vars.remove(varset);
+        return marginalizeInternal(vars);
+    }
 
-  public Factor extractMax (Variable vars[])
-  {
-    return extractMaxInternal (new HashVarSet (vars));
-  }
+    public Factor extractMax(Variable vars[]) {
+        return extractMaxInternal(new HashVarSet(vars));
+    }
 
-  public Factor extractMax (Collection vars)
-  {
-    return extractMaxInternal (new HashVarSet (vars));
-  }
+    public Factor extractMax(Collection vars) {
+        return extractMaxInternal(new HashVarSet(vars));
+    }
 
-  public Factor extractMax (Variable var)
-  {
-    return extractMaxInternal (new HashVarSet (new Variable[] { var }));
-  }
+    public Factor extractMax(Variable var) {
+        return extractMaxInternal(new HashVarSet(new Variable[]{var}));
+    }
 
 
-  // xxx should return an Assignment
-  public int argmax ()
-  {
-    throw new UnsupportedOperationException (toString());
-  }
+    // xxx should return an Assignment
+    public int argmax() {
+        throw new UnsupportedOperationException(toString());
+    }
 
-  public Assignment sample (Randoms r)
-  {
-    throw new UnsupportedOperationException (toString());
-  }
+    public Assignment sample(Randoms r) {
+        throw new UnsupportedOperationException(toString());
+    }
 
-  public double sum ()
-  {
-    throw new UnsupportedOperationException (toString());
-  }
+    public double sum() {
+        throw new UnsupportedOperationException(toString());
+    }
 
-  public double entropy ()
-  {
-    throw new UnsupportedOperationException (toString());
-  }
+    public double entropy() {
+        throw new UnsupportedOperationException(toString());
+    }
 
-  public Factor multiply (Factor dist)
-  {
-    Factor dup = duplicate ();
-    dup.multiplyBy (dist);
-    return dup;
-  }
+    public Factor multiply(Factor dist) {
+        Factor dup = duplicate();
+        dup.multiplyBy(dist);
+        return dup;
+    }
 
-  public void multiplyBy (Factor pot)
-  {
-    throw new UnsupportedOperationException ("Cannot multiply "+this+" by "+pot);
-  }
+    public void multiplyBy(Factor pot) {
+        throw new UnsupportedOperationException("Cannot multiply " + this + " by " + pot);
+    }
 
-  public void exponentiate (double power)
-  {
-    throw new UnsupportedOperationException ("Cannot exponentiate "+this+" by "+power);
-  }
+    public void exponentiate(double power) {
+        throw new UnsupportedOperationException("Cannot exponentiate " + this + " by " + power);
+    }
 
-  public void divideBy (Factor pot)
-  {
-    throw new UnsupportedOperationException ("Cannot divide "+this+ " by "+pot);
-  }
+    public void divideBy(Factor pot) {
+        throw new UnsupportedOperationException("Cannot divide " + this + " by " + pot);
+    }
 
-  public boolean isInLogSpace ()
-  {
-    return false;
-  }
+    public boolean isInLogSpace() {
+        return false;
+    }
 
-  public void logify ()
-  {
-    throw new UnsupportedOperationException (toString());
-  }
+    public void logify() {
+        throw new UnsupportedOperationException(toString());
+    }
 
-  public void delogify ()
-  {
-    throw new UnsupportedOperationException (toString());
-  }
+    public void delogify() {
+        throw new UnsupportedOperationException(toString());
+    }
 
-  public Factor log ()
-  {
-    throw new UnsupportedOperationException (toString());
-  }
+    public Factor log() {
+        throw new UnsupportedOperationException(toString());
+    }
 
-  public boolean containsVar (Variable var)
-  {
-    return vars.contains (var);
-  }
+    public boolean containsVar(Variable var) {
+        return vars.contains(var);
+    }
 
-  public VarSet varSet ()
-  {
-    return vars;
-  }
+    public VarSet varSet() {
+        return vars;
+    }
 
-  public AssignmentIterator assignmentIterator ()
-  {
-    throw new UnsupportedOperationException (toString());
-  }
+    public AssignmentIterator assignmentIterator() {
+        throw new UnsupportedOperationException(toString());
+    }
 
-  public boolean almostEquals (Factor p)
-  {
-    return almostEquals (p, 1e-5);
-  }
+    public boolean almostEquals(Factor p) {
+        return almostEquals(p, 1e-5);
+    }
 
 
-  public double logValue (Assignment assn)
-  {
-    return Math.log (value (assn));
-  }
+    public double logValue(Assignment assn) {
+        return Math.log(value(assn));
+    }
 
-  public double logValue (AssignmentIterator it)
-  {
-    return Math.log (value (it));
-  }
+    public double logValue(AssignmentIterator it) {
+        return Math.log(value(it));
+    }
 
-  public double logValue (int loc)
-  {
-    throw new UnsupportedOperationException (toString());
-  }
+    public double logValue(int loc) {
+        throw new UnsupportedOperationException(toString());
+    }
 
-  public Variable getVariable (int i)
-  {
-    return vars.get (i);
-  }
+    public Variable getVariable(int i) {
+        return vars.get(i);
+    }
 
-  public AbstractTableFactor asTable ()
-  {
-    throw new UnsupportedOperationException (toString());
-  }
+    public AbstractTableFactor asTable() {
+        throw new UnsupportedOperationException(toString());
+    }
 
-  protected void setVarSet (VarSet vars) { this.vars = vars; }
+    protected void setVarSet(VarSet vars) {
+        this.vars = vars;
+    }
 
-    public String prettyOutputString () {
-	StringBuffer buf = new StringBuffer();
-	for (Iterator it = vars.iterator(); it.hasNext();) {
-	    Variable var = (Variable) it.next();
-	    buf.append (var.getLabel());
-	    buf.append (" ");
-	}
-	buf.append ("~ Factor\n");
-	return buf.toString();
+    public String prettyOutputString() {
+        StringBuffer buf = new StringBuffer();
+        for (Iterator it = vars.iterator(); it.hasNext(); ) {
+            Variable var = (Variable) it.next();
+            buf.append(var.getLabel());
+            buf.append(" ");
+        }
+        buf.append("~ Factor\n");
+        return buf.toString();
     }
 
 }

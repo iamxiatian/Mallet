@@ -14,19 +14,24 @@ package cc.mallet.grmm.types;
  */
 class SparseAssignmentIterator extends AbstractAssignmentIterator {
 
-  private int[] indices;
-  private int sparseIdx = 0;
+    private int[] indices;
+    private int sparseIdx = 0;
 
-  SparseAssignmentIterator (VarSet verts, int[] indices)
-  {
-    super (verts);
-    this.indices = indices;
-  }
+    SparseAssignmentIterator(VarSet verts, int[] indices) {
+        super(verts);
+        this.indices = indices;
+    }
 
-  public void advance() { sparseIdx++; }
+    public void advance() {
+        sparseIdx++;
+    }
 
-  public boolean hasNext () { return sparseIdx < indices.length; }
+    public boolean hasNext() {
+        return sparseIdx < indices.length;
+    }
 
-  //xxx wise to make public?
-  public int indexOfCurrentAssn () { return indices [sparseIdx]; }
+    //xxx wise to make public?
+    public int indexOfCurrentAssn() {
+        return indices[sparseIdx];
+    }
 }

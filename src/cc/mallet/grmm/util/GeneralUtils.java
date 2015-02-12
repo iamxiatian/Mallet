@@ -9,7 +9,7 @@ package cc.mallet.grmm.util;
 
 /**
  * Static utility methods that didn't seem to belong anywhere else.
- *
+ * <p>
  * Created: Tue Mar 30 14:29:57 2004
  *
  * @author <a href="mailto:casutton@cs.umass.edu">Charles Sutton</a>
@@ -17,14 +17,14 @@ package cc.mallet.grmm.util;
  */
 public class GeneralUtils {
 
-	private GeneralUtils () {} // No instances
-	
-	public static String classShortName (Object obj)
-	{
-		String classname = obj.getClass().getName();
-		int dotidx = classname.lastIndexOf ('.');
-		String shortname = classname.substring (dotidx+1);
-		return shortname;
-	}
+    private GeneralUtils() {
+    } // No instances
+
+    public static String classShortName(Object obj) {
+        String classname = obj.getClass().getName();
+        int dotidx = classname.lastIndexOf('.');
+        String shortname = classname.substring(dotidx + 1);
+        return shortname;
+    }
 
 } // Utils

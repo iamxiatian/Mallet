@@ -6,11 +6,12 @@
    information, see the file `LICENSE' included with this distribution. */
 package cc.mallet.types.tests;
 
-import junit.framework.*;
+import cc.mallet.types.Alphabet;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
 import java.io.IOException;
-
-import cc.mallet.types.Alphabet;
 
 /**
  * Created: Nov 24, 2004
@@ -20,52 +21,46 @@ import cc.mallet.types.Alphabet;
  */
 public class TestAlphabet extends TestCase {
 
-  public TestAlphabet (String name)
-  {
-    super (name);
-  }
-
-  public void testNotFound ()
-  {
-    Alphabet dict = new Alphabet ();
-    dict.lookupIndex ("TEST1");
-    dict.lookupIndex ("TEST2");
-    dict.lookupIndex ("TEST3");
-    assertEquals (-1, dict.lookupIndex ("TEST4", false));
-    assertEquals (3, dict.size());
-    assertEquals (3, dict.lookupIndex ("TEST4", true));
-  }
-
-  // tests a bug where
-  public void testReadResolve () throws IOException, ClassNotFoundException
-  {
-    Alphabet dict = new Alphabet ();
-    dict.lookupIndex ("TEST1");
-    dict.lookupIndex ("TEST2");
-    dict.lookupIndex ("TEST3");
-    Alphabet dict2 = (Alphabet) TestSerializable.cloneViaSerialization (dict);
-    assertTrue (dict == dict2);
-  }
-
-  public static Test suite ()
-  {
-    return new TestSuite (TestAlphabet.class);
-  }
-
-
-  public static void main (String[] args) throws Throwable
-  {
-    TestSuite theSuite;
-    if (args.length > 0) {
-      theSuite = new TestSuite ();
-      for (int i = 0; i < args.length; i++) {
-        theSuite.addTest (new TestAlphabet (args[i]));
-      }
-    } else {
-      theSuite = (TestSuite) suite ();
+    public TestAlphabet(String name) {
+        super(name);
     }
 
-    junit.textui.TestRunner.run (theSuite);
-  }
+    public static Test suite() {
+        return new TestSuite(TestAlphabet.class);
+    }
+
+    public static void main(String[] args) throws Throwable {
+        TestSuite theSuite;
+        if (args.length > 0) {
+            theSuite = new TestSuite();
+            for (int i = 0; i < args.length; i++) {
+                theSuite.addTest(new TestAlphabet(args[i]));
+            }
+        } else {
+            theSuite = (TestSuite) suite();
+        }
+
+        junit.textui.TestRunner.run(theSuite);
+    }
+
+    public void testNotFound() {
+        Alphabet dict = new Alphabet();
+        dict.lookupIndex("TEST1");
+        dict.lookupIndex("TEST2");
+        dict.lookupIndex("TEST3");
+        assertEquals(-1, dict.lookupIndex("TEST4", false));
+        assertEquals(3, dict.size());
+        assertEquals(3, dict.lookupIndex("TEST4", true));
+    }
+
+    // tests a bug where
+    public void testReadResolve() throws IOException, ClassNotFoundException {
+        Alphabet dict = new Alphabet();
+        dict.lookupIndex("TEST1");
+        dict.lookupIndex("TEST2");
+        dict.lookupIndex("TEST3");
+        Alphabet dict2 = (Alphabet) TestSerializable.cloneViaSerialization(dict);
+        assertTrue(dict == dict2);
+    }
 
 }

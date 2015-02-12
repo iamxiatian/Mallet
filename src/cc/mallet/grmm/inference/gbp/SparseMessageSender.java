@@ -7,9 +7,9 @@
 package cc.mallet.grmm.inference.gbp;
 
 
-import java.util.Iterator;
-
 import cc.mallet.grmm.types.*;
+
+import java.util.Iterator;
 
 /**
  * Created: Jun 1, 2005
@@ -19,76 +19,73 @@ import cc.mallet.grmm.types.*;
  */
 public class SparseMessageSender extends AbstractMessageStrategy {
 
-  private double epsilon;
+    private double epsilon;
 
-  public SparseMessageSender (double epsilon)
-  {
-    this.epsilon = epsilon;
-  }
-
-  public void sendMessage (RegionEdge edge)
-  {
-    Factor product = msgProduct (edge);
-    for (Iterator it = edge.factorsToSend.iterator (); it.hasNext ();) {
-       Factor ptl = (Factor) it.next ();
-       product.multiplyBy (ptl);
-     }
-
-    TableFactor result = (TableFactor) product.marginalize (edge.to.vars);
-    result.normalize ();
-
-    TableFactor pruned;
-    if (shouldPruneMessage (edge, result)) {
-//    if (edge.to.vars.size() > 1) {
-      pruned = Factors.retainMass (result, epsilon);
-      pruned.normalize();
-//      System.err.println ("Potential pruning.\nPRE:"+result+"\nPOST:"+pruned);
-    } else {
-      // Only prune messages to leaves
-      pruned = result;
-//      System.err.println ("Message for edge "+edge+" not pruned.");
+    public SparseMessageSender(double epsilon) {
+        this.epsilon = epsilon;
     }
 
-
-    newMessages.setMessage (edge.from, edge.to, pruned);
-  }
-
-  public MessageArray averageMessages (RegionGraph rg, MessageArray a1, MessageArray a2, double inertiaWeight)
-  {
-    MessageArray arr = new MessageArray (rg);
-    for (Iterator it = rg.edgeIterator (); it.hasNext ();) {
-      RegionEdge edge = (RegionEdge) it.next ();
-      Factor msg1 = a1.getMessage (edge.from, edge.to);
-      Factor msg2 = a2.getMessage (edge.from, edge.to);
-      if (msg1 != null) {
-        TableFactor averaged = (TableFactor) Factors.average (msg1, msg2, inertiaWeight);
-        TableFactor pruned;
-        if (shouldPruneMessage (edge, averaged)) {
-          pruned = Factors.retainMass (averaged, epsilon);
-        } else {
-          pruned = averaged;
+    public void sendMessage(RegionEdge edge) {
+        Factor product = msgProduct(edge);
+        for (Iterator it = edge.factorsToSend.iterator(); it.hasNext(); ) {
+            Factor ptl = (Factor) it.next();
+            product.multiplyBy(ptl);
         }
 
-        arr.setMessage (edge.from, edge.to, pruned);
-      }
+        TableFactor result = (TableFactor) product.marginalize(edge.to.vars);
+        result.normalize();
+
+        TableFactor pruned;
+        if (shouldPruneMessage(edge, result)) {
+//    if (edge.to.vars.size() > 1) {
+            pruned = Factors.retainMass(result, epsilon);
+            pruned.normalize();
+//      System.err.println ("Potential pruning.\nPRE:"+result+"\nPOST:"+pruned);
+        } else {
+            // Only prune messages to leaves
+            pruned = result;
+//      System.err.println ("Message for edge "+edge+" not pruned.");
+        }
+
+
+        newMessages.setMessage(edge.from, edge.to, pruned);
     }
 
-    // compute amount of sparsity
-    int locs = 0; int idxs = 0;
-    for (Iterator it = rg.edgeIterator (); it.hasNext ();) {
-      RegionEdge edge = (RegionEdge) it.next ();
-      DiscreteFactor msg = arr.getMessage (edge.from, edge.to);
-      locs += msg.numLocations ();
-      idxs += new HashVarSet (msg.varSet ()).weight ();
+    public MessageArray averageMessages(RegionGraph rg, MessageArray a1, MessageArray a2, double inertiaWeight) {
+        MessageArray arr = new MessageArray(rg);
+        for (Iterator it = rg.edgeIterator(); it.hasNext(); ) {
+            RegionEdge edge = (RegionEdge) it.next();
+            Factor msg1 = a1.getMessage(edge.from, edge.to);
+            Factor msg2 = a2.getMessage(edge.from, edge.to);
+            if (msg1 != null) {
+                TableFactor averaged = (TableFactor) Factors.average(msg1, msg2, inertiaWeight);
+                TableFactor pruned;
+                if (shouldPruneMessage(edge, averaged)) {
+                    pruned = Factors.retainMass(averaged, epsilon);
+                } else {
+                    pruned = averaged;
+                }
+
+                arr.setMessage(edge.from, edge.to, pruned);
+            }
+        }
+
+        // compute amount of sparsity
+        int locs = 0;
+        int idxs = 0;
+        for (Iterator it = rg.edgeIterator(); it.hasNext(); ) {
+            RegionEdge edge = (RegionEdge) it.next();
+            DiscreteFactor msg = arr.getMessage(edge.from, edge.to);
+            locs += msg.numLocations();
+            idxs += new HashVarSet(msg.varSet()).weight();
+        }
+        System.out.println("Sparsity quotient = " + locs + " of " + idxs);
+
+        return arr;
     }
-    System.out.println ("Sparsity quotient = "+locs+" of "+idxs);
 
-    return arr;
-  }
-
-  private boolean shouldPruneMessage (RegionEdge edge, Factor msg)
-  {
-    return edge.to.children.isEmpty ();
-  }
+    private boolean shouldPruneMessage(RegionEdge edge, Factor msg) {
+        return edge.to.children.isEmpty();
+    }
 
 }

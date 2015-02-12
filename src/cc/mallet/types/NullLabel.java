@@ -7,10 +7,6 @@
 
 package cc.mallet.types;
 
-import cc.mallet.types.Alphabet;
-import cc.mallet.types.AlphabetCarrying;
-import cc.mallet.types.LabelAlphabet;
-
 /**
  * Object that carries a LabelAlphabet. Can be used in place of a
  * null target for unlabeled instances, which avoids issues
@@ -21,17 +17,17 @@ import cc.mallet.types.LabelAlphabet;
 
 public class NullLabel implements AlphabetCarrying {
 
-  private LabelAlphabet alphabet;
-  
-  public NullLabel(LabelAlphabet alphabet) {
-    this.alphabet = alphabet;  
-  }
+    private LabelAlphabet alphabet;
 
-  public Alphabet getAlphabet() {
-    return alphabet;
-  }
+    public NullLabel(LabelAlphabet alphabet) {
+        this.alphabet = alphabet;
+    }
 
-  public Alphabet[] getAlphabets() {
-    return new Alphabet[] { alphabet };
-  }
+    public Alphabet getAlphabet() {
+        return alphabet;
+    }
+
+    public Alphabet[] getAlphabets() {
+        return new Alphabet[]{alphabet};
+    }
 }

@@ -1,199 +1,198 @@
 package cc.mallet.regression;
 
-import java.util.Arrays;
-import java.io.*;
-import java.text.NumberFormat;
+import cc.mallet.types.FeatureVector;
+import cc.mallet.types.Instance;
+import cc.mallet.types.InstanceList;
+import cc.mallet.types.InvertedIndex;
 
-import cc.mallet.types.*;
-import cc.mallet.optimize.*;
-import cc.mallet.util.MVNormal;
-import cc.mallet.util.StatFunctions;
+import java.io.File;
+import java.text.NumberFormat;
 
 public class CoordinateDescent {
 
-	LinearRegression regression;
-	double[] parameters;
+    LinearRegression regression;
+    double[] parameters;
 
-	InstanceList trainingData;
+    InstanceList trainingData;
 
-	// Keep the unthresholded values of each parameter here
-	double[] scaledResiduals;
+    // Keep the unthresholded values of each parameter here
+    double[] scaledResiduals;
 
-	double tuningConstant;
+    double tuningConstant;
 
-	double[] sumSquaredX;
-	double[] scaledThresholds;
-	InvertedIndex featureIndex;
+    double[] sumSquaredX;
+    double[] scaledThresholds;
+    InvertedIndex featureIndex;
 
-	int interceptIndex, precisionIndex, dimension;
+    int interceptIndex, precisionIndex, dimension;
 
-	NumberFormat formatter;
+    NumberFormat formatter;
 
-	public CoordinateDescent (InstanceList data, double l1Weight) {
+    public CoordinateDescent(InstanceList data, double l1Weight) {
 
-		tuningConstant = l1Weight;
+        tuningConstant = l1Weight;
 
-		trainingData = data;
-		regression = new LinearRegression(trainingData.getDataAlphabet());
-		parameters = regression.getParameters();
+        trainingData = data;
+        regression = new LinearRegression(trainingData.getDataAlphabet());
+        parameters = regression.getParameters();
 
-		interceptIndex = parameters.length - 2;
-		precisionIndex = parameters.length - 1;
+        interceptIndex = parameters.length - 2;
+        precisionIndex = parameters.length - 1;
 
-		formatter = NumberFormat.getInstance();
-		formatter.setMaximumFractionDigits(3);
+        formatter = NumberFormat.getInstance();
+        formatter.setMaximumFractionDigits(3);
 
-		// We're not concerned with the precision variable
-		dimension = parameters.length - 1;
+        // We're not concerned with the precision variable
+        dimension = parameters.length - 1;
 
-		scaledResiduals = new double[ dimension ];
-		sumSquaredX = new double[ dimension ];
-		scaledThresholds = new double[ dimension ];
+        scaledResiduals = new double[dimension];
+        sumSquaredX = new double[dimension];
+        scaledThresholds = new double[dimension];
 
-		featureIndex = new InvertedIndex(data);
-		
-		for (Instance instance: data) {
-			FeatureVector predictors = (FeatureVector) instance.getData();
-			double y = ((Double) instance.getTarget()).doubleValue();
+        featureIndex = new InvertedIndex(data);
 
-			scaledResiduals[interceptIndex] += y;
+        for (Instance instance : data) {
+            FeatureVector predictors = (FeatureVector) instance.getData();
+            double y = ((Double) instance.getTarget()).doubleValue();
 
-			for (int i = 0; i < predictors.numLocations(); i++) {
+            scaledResiduals[interceptIndex] += y;
 
-				int index = predictors.indexAtLocation(i);
-				double value = predictors.valueAtLocation(i);
-				
-				scaledResiduals[index] += y * value;
-				sumSquaredX[index] += value * value;
-			}
+            for (int i = 0; i < predictors.numLocations(); i++) {
 
-		}
+                int index = predictors.indexAtLocation(i);
+                double value = predictors.valueAtLocation(i);
 
-		// data.size() is sum of squared values for the default feature
-		scaledResiduals[interceptIndex] /= data.size();
+                scaledResiduals[index] += y * value;
+                sumSquaredX[index] += value * value;
+            }
 
-		for (int index = 0; index < dimension - 1; index++) {
-			scaledResiduals[index] /= sumSquaredX[index];
-			scaledThresholds[index] = tuningConstant / sumSquaredX[index];
-			
-		}
+        }
 
-		boolean converged = false;
+        // data.size() is sum of squared values for the default feature
+        scaledResiduals[interceptIndex] /= data.size();
 
-		int iteration = 0;
+        for (int index = 0; index < dimension - 1; index++) {
+            scaledResiduals[index] /= sumSquaredX[index];
+            scaledThresholds[index] = tuningConstant / sumSquaredX[index];
 
-		while (! converged) {
-			
-			double totalDiff = 0;
-			double diff = parameters[interceptIndex] - scaledResiduals[interceptIndex];
-			totalDiff += Math.abs(diff);
+        }
 
-			// Don't use soft threshold for intercept
-			parameters[interceptIndex] = scaledResiduals[interceptIndex];
+        boolean converged = false;
 
-			// Update scaledResiduals for remaining instances.
+        int iteration = 0;
 
-			for (Instance instance: data) {
-				FeatureVector predictors = (FeatureVector) instance.getData();
-				for (int i = 0; i < predictors.numLocations(); i++) {
-					int index = predictors.indexAtLocation(i);
-					double value = predictors.valueAtLocation(i);
-					
-					scaledResiduals[index] += value * diff / sumSquaredX[index];
-				}
-			}
-			
-			for (int index = 0; index < dimension - 1; index++) {
-				diff = parameters[index];
-				
-				if (scaledResiduals[index] > tuningConstant) {
-					parameters[index] = scaledResiduals[index] - tuningConstant;
-				}
-				else if (scaledResiduals[index] < -tuningConstant) {
-					parameters[index] = scaledResiduals[index] + tuningConstant;
-				}
+        while (!converged) {
 
-				diff -= parameters[index];
+            double totalDiff = 0;
+            double diff = parameters[interceptIndex] - scaledResiduals[interceptIndex];
+            totalDiff += Math.abs(diff);
 
-				totalDiff += Math.abs(diff);
+            // Don't use soft threshold for intercept
+            parameters[interceptIndex] = scaledResiduals[interceptIndex];
 
-				for (Object o: featureIndex.getInstancesWithFeature(index)) {
-					Instance instance = (Instance) o;
-					FeatureVector predictors = (FeatureVector) instance.getData();
+            // Update scaledResiduals for remaining instances.
 
-					// Loop through once to get the value we are changing
+            for (Instance instance : data) {
+                FeatureVector predictors = (FeatureVector) instance.getData();
+                for (int i = 0; i < predictors.numLocations(); i++) {
+                    int index = predictors.indexAtLocation(i);
+                    double value = predictors.valueAtLocation(i);
 
-					double value = 0.0;
+                    scaledResiduals[index] += value * diff / sumSquaredX[index];
+                }
+            }
 
-					for (int i = 0; i < predictors.numLocations(); i++) {
-						if (predictors.indexAtLocation(i) == index) {
-							value = predictors.valueAtLocation(i);
-							break;
-						}
-					}
+            for (int index = 0; index < dimension - 1; index++) {
+                diff = parameters[index];
 
-					// Update the residual for the intercept
+                if (scaledResiduals[index] > tuningConstant) {
+                    parameters[index] = scaledResiduals[index] - tuningConstant;
+                } else if (scaledResiduals[index] < -tuningConstant) {
+                    parameters[index] = scaledResiduals[index] + tuningConstant;
+                }
 
-					scaledResiduals[interceptIndex] += value * diff / data.size();
+                diff -= parameters[index];
 
-					// Update the residual for all other non-zero features
+                totalDiff += Math.abs(diff);
 
-					for (int i = 0; i < predictors.numLocations(); i++) {
-						int otherIndex = predictors.indexAtLocation(i);
-						double otherValue = predictors.valueAtLocation(i);
+                for (Object o : featureIndex.getInstancesWithFeature(index)) {
+                    Instance instance = (Instance) o;
+                    FeatureVector predictors = (FeatureVector) instance.getData();
 
-						if (otherIndex != index) {
-							scaledResiduals[otherIndex] += value * otherValue * diff / sumSquaredX[otherIndex];
-						}
-					}
+                    // Loop through once to get the value we are changing
 
-				}
-			}
+                    double value = 0.0;
 
-			if (totalDiff < 0.0001) { converged = true; }
-			else {
-				iteration++;
-				if (iteration % 100 == 0) {
-					System.out.println(totalDiff);
-				}
-			}
-		}
-		
+                    for (int i = 0; i < predictors.numLocations(); i++) {
+                        if (predictors.indexAtLocation(i) == index) {
+                            value = predictors.valueAtLocation(i);
+                            break;
+                        }
+                    }
 
-	}
+                    // Update the residual for the intercept
 
-	public String toString() {
+                    scaledResiduals[interceptIndex] += value * diff / data.size();
 
-		double sumSquaredError = 0.0;
+                    // Update the residual for all other non-zero features
 
-		for (int i = 0; i < trainingData.size(); i++) {
-			Instance instance = trainingData.get(i);
+                    for (int i = 0; i < predictors.numLocations(); i++) {
+                        int otherIndex = predictors.indexAtLocation(i);
+                        double otherValue = predictors.valueAtLocation(i);
 
-			double prediction = regression.predict(instance);
-			double y = ((Double) instance.getTarget()).doubleValue();
+                        if (otherIndex != index) {
+                            scaledResiduals[otherIndex] += value * otherValue * diff / sumSquaredX[otherIndex];
+                        }
+                    }
 
-			double residual = (y - prediction);
+                }
+            }
 
-			sumSquaredError += residual * residual;
-		}
+            if (totalDiff < 0.0001) {
+                converged = true;
+            } else {
+                iteration++;
+                if (iteration % 100 == 0) {
+                    System.out.println(totalDiff);
+                }
+            }
+        }
 
-		StringBuilder out = new StringBuilder();
 
-		out.append("(Int)\t" + formatter.format(parameters[interceptIndex]) + "\n");
-		for (int index=0; index < dimension - 1; index++) {
-			out.append(trainingData.getDataAlphabet().lookupObject(index) + "\t");
-			out.append(formatter.format(parameters[index]) + "\n");
-		}
+    }
 
-		out.append("SSE: " + formatter.format(sumSquaredError) + "\n");
+    public static void main(String[] args) throws Exception {
 
-		return out.toString();
-	}
+        InstanceList data = InstanceList.load(new File(args[0]));
+        CoordinateDescent trainer = new CoordinateDescent(data, Double.parseDouble(args[1]));
+        System.out.println(trainer);
+    }
 
-	public static void main(String[] args) throws Exception {
+    public String toString() {
 
-		InstanceList data = InstanceList.load(new File(args[0]));
-		CoordinateDescent trainer = new CoordinateDescent(data, Double.parseDouble(args[1]));
-		System.out.println(trainer);
-	}
+        double sumSquaredError = 0.0;
+
+        for (int i = 0; i < trainingData.size(); i++) {
+            Instance instance = trainingData.get(i);
+
+            double prediction = regression.predict(instance);
+            double y = ((Double) instance.getTarget()).doubleValue();
+
+            double residual = (y - prediction);
+
+            sumSquaredError += residual * residual;
+        }
+
+        StringBuilder out = new StringBuilder();
+
+        out.append("(Int)\t" + formatter.format(parameters[interceptIndex]) + "\n");
+        for (int index = 0; index < dimension - 1; index++) {
+            out.append(trainingData.getDataAlphabet().lookupObject(index) + "\t");
+            out.append(formatter.format(parameters[index]) + "\n");
+        }
+
+        out.append("SSE: " + formatter.format(sumSquaredError) + "\n");
+
+        return out.toString();
+    }
 }

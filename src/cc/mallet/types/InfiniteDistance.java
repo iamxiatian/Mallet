@@ -5,7 +5,7 @@
    version 1.0, as published by http://www.opensource.org.  For further
    information, see the file `LICENSE' included with this distribution. */
 
-/** 
+/**
  *  This distance corresponds to the maximum distance between values at any dimension.
  *
  *  @author Jerod Weinman <A HREF="mailto:weinman@cs.umass.edu">weinman@cs.umass.edu</A>
@@ -13,63 +13,65 @@
 
 package cc.mallet.types;
 
-import cc.mallet.types.SparseVector;
-
 public class InfiniteDistance implements Metric {
 
-	public double distance(SparseVector a, SparseVector b)    {
-		double maxDiff = 0.0;
-		double diff;
-		
-		if (a==null || b==null) {
-		    throw new IllegalArgumentException("Distance from a null vector is undefined.");
-		}
+    public double distance(SparseVector a, SparseVector b) {
+        double maxDiff = 0.0;
+        double diff;
 
-		int leftLength = a.numLocations();
-		int rightLength = b.numLocations();
-		int leftIndex = 0;
-		int rightIndex = 0;
-		int leftFeature, rightFeature;
+        if (a == null || b == null) {
+            throw new IllegalArgumentException("Distance from a null vector is undefined.");
+        }
 
-		// We assume that features are sorted in ascending order.
-		// We'll walk through the two feature lists in order, checking
-		//  whether the two features are the same.
+        int leftLength = a.numLocations();
+        int rightLength = b.numLocations();
+        int leftIndex = 0;
+        int rightIndex = 0;
+        int leftFeature, rightFeature;
 
-		while (leftIndex < leftLength && rightIndex < rightLength) {
+        // We assume that features are sorted in ascending order.
+        // We'll walk through the two feature lists in order, checking
+        //  whether the two features are the same.
 
-			leftFeature = a.indexAtLocation(leftIndex);
-			rightFeature = b.indexAtLocation(rightIndex);
+        while (leftIndex < leftLength && rightIndex < rightLength) {
 
-			if (leftFeature < rightFeature) {
-				diff = Math.abs(a.valueAtLocation(leftIndex));
-				leftIndex ++;
-			}
-			else if (leftFeature == rightFeature) {
-				diff = Math.abs(a.valueAtLocation(leftIndex) - b.valueAtLocation(rightIndex));
-				leftIndex ++;
-				rightIndex ++;
-			}
-			else {
-				diff = Math.abs(b.valueAtLocation(rightIndex));
-				rightIndex ++;
-			}
+            leftFeature = a.indexAtLocation(leftIndex);
+            rightFeature = b.indexAtLocation(rightIndex);
 
-			if (diff > maxDiff) { maxDiff = diff; }
-		}
+            if (leftFeature < rightFeature) {
+                diff = Math.abs(a.valueAtLocation(leftIndex));
+                leftIndex++;
+            } else if (leftFeature == rightFeature) {
+                diff = Math.abs(a.valueAtLocation(leftIndex) - b.valueAtLocation(rightIndex));
+                leftIndex++;
+                rightIndex++;
+            } else {
+                diff = Math.abs(b.valueAtLocation(rightIndex));
+                rightIndex++;
+            }
 
-		// Pick up any additional features at the end of the two lists.
-		while (leftIndex < leftLength) {
-			diff = Math.abs(a.valueAtLocation(leftIndex));
-			if (diff > maxDiff) { maxDiff = diff; }
-			leftIndex++;
-		}
+            if (diff > maxDiff) {
+                maxDiff = diff;
+            }
+        }
 
-		while (rightIndex < rightLength) {
-			diff = Math.abs(b.valueAtLocation(rightIndex));
-			if (diff > maxDiff) { maxDiff = diff; }
-			rightIndex++;
-		}
+        // Pick up any additional features at the end of the two lists.
+        while (leftIndex < leftLength) {
+            diff = Math.abs(a.valueAtLocation(leftIndex));
+            if (diff > maxDiff) {
+                maxDiff = diff;
+            }
+            leftIndex++;
+        }
 
-		return maxDiff;
-	}
+        while (rightIndex < rightLength) {
+            diff = Math.abs(b.valueAtLocation(rightIndex));
+            if (diff > maxDiff) {
+                maxDiff = diff;
+            }
+            rightIndex++;
+        }
+
+        return maxDiff;
+    }
 }

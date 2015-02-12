@@ -18,16 +18,17 @@ import cc.mallet.types.Sequence;
  */
 public interface TokenizationFilter {
 
-  /**
-   * Converts a the sequence of labels into a set of labeled spans.  Essentially, this converts the
-   *  output of sequence labeling into an extraction output.
-   * @param dict
-   * @param document
-   * @param backgroundTag
-   * @param input
-   * @param seq
-   * @return
-   */
-  LabeledSpans constructLabeledSpans (LabelAlphabet dict, Object document, Label backgroundTag,
-                                             Tokenization input, Sequence seq);
+    /**
+     * Converts a the sequence of labels into a set of labeled spans.  Essentially, this converts the
+     * output of sequence labeling into an extraction output.
+     *
+     * @param dict
+     * @param document
+     * @param backgroundTag
+     * @param input
+     * @param seq
+     * @return
+     */
+    LabeledSpans constructLabeledSpans(LabelAlphabet dict, Object document, Label backgroundTag,
+                                       Tokenization input, Sequence seq);
 }

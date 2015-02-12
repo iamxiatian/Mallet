@@ -7,13 +7,13 @@
 package cc.mallet.grmm.inference.gbp;
 
 
-import java.util.Iterator;
-
 import cc.mallet.grmm.types.Factor;
 import cc.mallet.grmm.types.FactorGraph;
 import cc.mallet.grmm.types.UndirectedGrid;
 import cc.mallet.grmm.types.Variable;
 import cc.mallet.util.ArrayUtils;
+
+import java.util.Iterator;
 
 /**
  * Created: May 31, 2005
@@ -23,104 +23,100 @@ import cc.mallet.util.ArrayUtils;
  */
 public class Kikuchi4SquareRegionGenerator implements RegionGraphGenerator {
 
-  public RegionGraph constructRegionGraph (FactorGraph mdl)
-  {
-    if (mdl instanceof UndirectedGrid) {
-      RegionGraph rg = new RegionGraph ();
+    public RegionGraph constructRegionGraph(FactorGraph mdl) {
+        if (mdl instanceof UndirectedGrid) {
+            RegionGraph rg = new RegionGraph();
 
-      UndirectedGrid grid = (UndirectedGrid) mdl;
+            UndirectedGrid grid = (UndirectedGrid) mdl;
 
-      // First set up regions for all
-      for (int x = 0; x < grid.getWidth () - 1; x++) {
-        for (int y = 0; y < grid.getHeight () - 1; y++) {
-          Variable[] vars = new Variable[] {
-           grid.get (x, y),
-           grid.get (x+1, y),
-           grid.get (x+1, y+1),
-           grid.get (x, y+1), };
+            // First set up regions for all
+            for (int x = 0; x < grid.getWidth() - 1; x++) {
+                for (int y = 0; y < grid.getHeight() - 1; y++) {
+                    Variable[] vars = new Variable[]{
+                            grid.get(x, y),
+                            grid.get(x + 1, y),
+                            grid.get(x + 1, y + 1),
+                            grid.get(x, y + 1),};
 
-          Factor[] edges = new Factor[] {
-            mdl.factorOf (vars[0], vars[1]),
-           mdl.factorOf (vars[1], vars[2]),
-           mdl.factorOf (vars[2], vars[3]),
-           mdl.factorOf (vars[0], vars[3]), };
+                    Factor[] edges = new Factor[]{
+                            mdl.factorOf(vars[0], vars[1]),
+                            mdl.factorOf(vars[1], vars[2]),
+                            mdl.factorOf(vars[2], vars[3]),
+                            mdl.factorOf(vars[0], vars[3]),};
 
-          // Create region for 4-clique
-          Region fourSquare = new Region (vars, edges);
+                    // Create region for 4-clique
+                    Region fourSquare = new Region(vars, edges);
 
-          // Create 1-clique region
-          for (int i = 0; i < 4; i++) {
-            Variable var = vars[i];
-            Factor ptl = mdl.factorOf (var);
-            if (ptl != null) {
-              fourSquare.factors.add (ptl);
+                    // Create 1-clique region
+                    for (int i = 0; i < 4; i++) {
+                        Variable var = vars[i];
+                        Factor ptl = mdl.factorOf(var);
+                        if (ptl != null) {
+                            fourSquare.factors.add(ptl);
+                        }
+                    }
+
+                    // Finally create edge regions, and connect to everyone else
+                    for (int i = 0; i < 4; i++) {
+                        Factor edgePtl = edges[i];
+                        Region edgeRgn = rg.findRegion(edgePtl, true);
+                        rg.add(fourSquare, edgeRgn);
+
+                        Variable v1 = (Variable) edgeRgn.vars.get(0);
+                        Region nodeRgn = createVarRegion(rg, mdl, v1);
+                        edgeRgn.factors.addAll(nodeRgn.factors);
+                        rg.add(edgeRgn, nodeRgn);
+
+                        Variable v2 = (Variable) edgeRgn.vars.get(1);
+                        nodeRgn = createVarRegion(rg, mdl, v2);
+                        edgeRgn.factors.addAll(nodeRgn.factors);
+
+                        rg.add(edgeRgn, nodeRgn);
+                    }
+                }
             }
-          }
 
-          // Finally create edge regions, and connect to everyone else
-          for (int i = 0; i < 4; i++) {
-            Factor edgePtl = edges[i];
-            Region edgeRgn = rg.findRegion (edgePtl, true);
-            rg.add (fourSquare, edgeRgn);
+            rg.computeInferenceCaches();
 
-            Variable v1 = (Variable) edgeRgn.vars.get (0);
-            Region nodeRgn = createVarRegion (rg, mdl, v1);
-            edgeRgn.factors.addAll (nodeRgn.factors);
-            rg.add (edgeRgn, nodeRgn);
+            return rg;
 
-            Variable v2 = (Variable) edgeRgn.vars.get (1);
-            nodeRgn = createVarRegion (rg, mdl, v2);
-            edgeRgn.factors.addAll (nodeRgn.factors);
-
-            rg.add (edgeRgn, nodeRgn);
-          }
+        } else {
+            throw new UnsupportedOperationException("Kikuchi4SquareRegionGenerator requires that you use UndirectedGrid.");
         }
-      }
-
-      rg.computeInferenceCaches ();
-
-      return rg;
-
-    } else {
-      throw new UnsupportedOperationException ("Kikuchi4SquareRegionGenerator requires that you use UndirectedGrid.");
     }
-  }
 
-  private Region createVarRegion (RegionGraph rg, FactorGraph mdl, Variable v1)
-  {
-    Factor ptl = mdl.factorOf (v1);
-    if (ptl == null) {
-      return rg.findRegion (v1, true);
-    } else {
-      return rg.findRegion (ptl, true);
-    }
-  }
-
-  private void checkAllSingles (RegionGraph rg, Region[] nodeRegions)
-  {
-    for (Iterator it = rg.iterator (); it.hasNext ();) {
-      Region region = (Region) it.next ();
-      if (region.vars.size() == 1) {
-        if (ArrayUtils.indexOf (nodeRegions, region) < 0) {
-          throw new IllegalStateException ("huh?");
+    private Region createVarRegion(RegionGraph rg, FactorGraph mdl, Variable v1) {
+        Factor ptl = mdl.factorOf(v1);
+        if (ptl == null) {
+            return rg.findRegion(v1, true);
+        } else {
+            return rg.findRegion(ptl, true);
         }
-      }
-    }
-  }
-
-  private void checkTooManyDoubles (RegionGraph rg, FactorGraph mdl)
-  {
-    int nv = mdl.factors ().size ();
-    int doubles = 0;
-    for (Iterator it = rg.iterator (); it.hasNext ();) {
-      Region region = (Region) it.next ();
-      if (region.vars.size() == 2)
-        doubles++;
     }
 
-    if (doubles > nv) {
-      throw new IllegalStateException ("huh? ");
+    private void checkAllSingles(RegionGraph rg, Region[] nodeRegions) {
+        for (Iterator it = rg.iterator(); it.hasNext(); ) {
+            Region region = (Region) it.next();
+            if (region.vars.size() == 1) {
+                if (ArrayUtils.indexOf(nodeRegions, region) < 0) {
+                    throw new IllegalStateException("huh?");
+                }
+            }
+        }
     }
-  }
+
+    private void checkTooManyDoubles(RegionGraph rg, FactorGraph mdl) {
+        int nv = mdl.factors().size();
+        int doubles = 0;
+        for (Iterator it = rg.iterator(); it.hasNext(); ) {
+            Region region = (Region) it.next();
+            if (region.vars.size() == 2)
+                doubles++;
+        }
+
+        if (doubles > nv) {
+            throw new IllegalStateException("huh? ");
+        }
+    }
 
 }

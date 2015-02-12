@@ -6,76 +6,71 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-
 package cc.mallet.pipe;
 
-import java.io.*;
-
 import cc.mallet.types.*;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
 /**
  * convert the property list on a token into a feature vector
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+ *
+ * @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
-public class Token2FeatureVector extends Pipe implements Serializable
-{
-	boolean augmentable;									// Create AugmentableFeatureVector's in the sequence
-	boolean binary;												// Create binary (Augmentable)FeatureVector's in the sequence
-	
-	public Token2FeatureVector (Alphabet dataDict,
-															boolean binary, boolean augmentable)
-	{
-		super (dataDict, null);
-		this.augmentable = augmentable;
-		this.binary = binary;
-	}
+public class Token2FeatureVector extends Pipe implements Serializable {
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 0;
+    boolean augmentable;                                    // Create AugmentableFeatureVector's in the sequence
+    boolean binary;                                                // Create binary (Augmentable)FeatureVector's in the sequence
 
-	public Token2FeatureVector (Alphabet dataDict)
-	{
-		this (dataDict, false, false);
-	}
-	
-	public Token2FeatureVector (boolean binary, boolean augmentable)
-	{
-		super (new Alphabet(), null);
-		this.augmentable = augmentable;
-		this.binary = binary;
-	}
+    public Token2FeatureVector(Alphabet dataDict,
+                               boolean binary, boolean augmentable) {
+        super(dataDict, null);
+        this.augmentable = augmentable;
+        this.binary = binary;
+    }
 
-	public Token2FeatureVector ()
-	{
-		this (false, false);
-	}
-	
-	public Instance pipe (Instance carrier)
-	{
-		if (augmentable)
-			carrier.setData(new AugmentableFeatureVector ((Alphabet)getDataAlphabet(),
-																										((Token)carrier.getData()).getFeatures(),
-																										binary));
-		else
-			carrier.setData(new FeatureVector ((Alphabet)getDataAlphabet(),
-																				 ((Token)carrier.getData()).getFeatures(),
-																				 binary));
-		return carrier;
-	}
+    public Token2FeatureVector(Alphabet dataDict) {
+        this(dataDict, false, false);
+    }
 
-	// Serialization 
-	
-	private static final long serialVersionUID = 1;
-	private static final int CURRENT_SERIAL_VERSION = 0;
-	
-	private void writeObject (ObjectOutputStream out) throws IOException {
-		out.writeInt (CURRENT_SERIAL_VERSION);
-		out.writeBoolean(augmentable);
-		out.writeBoolean(binary);
-	}
-	
-	private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
-		int version = in.readInt ();
-		augmentable = in.readBoolean();
-		binary = in.readBoolean();
-	}
+    public Token2FeatureVector(boolean binary, boolean augmentable) {
+        super(new Alphabet(), null);
+        this.augmentable = augmentable;
+        this.binary = binary;
+    }
+
+    // Serialization
+
+    public Token2FeatureVector() {
+        this(false, false);
+    }
+
+    public Instance pipe(Instance carrier) {
+        if (augmentable)
+            carrier.setData(new AugmentableFeatureVector((Alphabet) getDataAlphabet(),
+                    ((Token) carrier.getData()).getFeatures(),
+                    binary));
+        else
+            carrier.setData(new FeatureVector((Alphabet) getDataAlphabet(),
+                    ((Token) carrier.getData()).getFeatures(),
+                    binary));
+        return carrier;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(CURRENT_SERIAL_VERSION);
+        out.writeBoolean(augmentable);
+        out.writeBoolean(binary);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        int version = in.readInt();
+        augmentable = in.readBoolean();
+        binary = in.readBoolean();
+    }
 
 }

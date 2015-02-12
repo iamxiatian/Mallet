@@ -4,10 +4,10 @@ import cc.mallet.cluster.Clustering;
 
 /**
  * Assign a score to a Clustering. Higher is better.
- * @author culotta
  *
+ * @author culotta
  */
 public interface ClusteringScorer {
 
-	public double score (Clustering clustering);
+    public double score(Clustering clustering);
 }

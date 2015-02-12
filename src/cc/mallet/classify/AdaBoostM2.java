@@ -8,15 +8,17 @@
 
 package cc.mallet.classify;
 
-import java.io.Serializable;
+import cc.mallet.pipe.Pipe;
+import cc.mallet.types.FeatureVector;
+import cc.mallet.types.Instance;
+import cc.mallet.types.LabelVector;
 
-import cc.mallet.pipe.*;
-import cc.mallet.types.*;
+import java.io.Serializable;
 
 
 /**
  * AdaBoostM2
- *
+ * <p>
  * <p>Yoav Freund and Robert E. Schapire
  * "Experiments with a New Boosting Algorithm"
  * In Journal of Machine Learning: Proceedings of the 13th International Conference, 1996
@@ -24,16 +26,14 @@ import cc.mallet.types.*;
  *
  * @author Gary Huang <a href="mailto:ghuang@cs.umass.edu">ghuang@cs.umass.edu</a>
  */
-public class AdaBoostM2 extends Classifier implements Serializable
-{
-	private static final long serialVersionUID = 1L;
-	
-	Classifier[] weakClassifiers;
+public class AdaBoostM2 extends Classifier implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    Classifier[] weakClassifiers;
     double[] alphas;
-    
-    public AdaBoostM2 (Pipe instancePipe, Classifier[] weakClassifiers, double[] alphas)
-    {
-        super (instancePipe);
+
+    public AdaBoostM2(Pipe instancePipe, Classifier[] weakClassifiers, double[] alphas) {
+        super(instancePipe);
         this.weakClassifiers = weakClassifiers;
         this.alphas = alphas;
     }
@@ -41,25 +41,23 @@ public class AdaBoostM2 extends Classifier implements Serializable
     /**
      * Get the number of weak classifiers in this ensemble classifier
      */
-    public int getNumWeakClassifiers()
-    {
+    public int getNumWeakClassifiers() {
         return alphas.length;
     }
 
-    /** 
+    /**
      * Return an AdaBoostM2 classifier that uses only the first
      * <tt>numWeakClassifiersToUse</tt> weak learners.
-     * 
+     * <p>
      * <p>The returned classifier's Pipe and weak classifiers
-     * are backed by the respective objects of this classifier, 
+     * are backed by the respective objects of this classifier,
      * so changes to the returned classifier's Pipe and weak
      * classifiers are reflected in this classifier, and vice versa.
      */
-    public AdaBoostM2 getTrimmedClassifier(int numWeakClassifiersToUse)
-    {
+    public AdaBoostM2 getTrimmedClassifier(int numWeakClassifiersToUse) {
         if (numWeakClassifiersToUse <= 0 || numWeakClassifiersToUse > weakClassifiers.length)
-	  throw new IllegalArgumentException("number of weak learners to use out of range:" 
-				       + numWeakClassifiersToUse);
+            throw new IllegalArgumentException("number of weak learners to use out of range:"
+                    + numWeakClassifiersToUse);
 
         Classifier[] newWeakClassifiers = new Classifier[numWeakClassifiersToUse];
         System.arraycopy(weakClassifiers, 0, newWeakClassifiers, 0, numWeakClassifiersToUse);
@@ -68,8 +66,7 @@ public class AdaBoostM2 extends Classifier implements Serializable
         return new AdaBoostM2(instancePipe, newWeakClassifiers, newAlphas);
     }
 
-    public Classification classify (Instance inst)
-    {
+    public Classification classify(Instance inst) {
         return classify(inst, weakClassifiers.length);
     }
 
@@ -78,29 +75,28 @@ public class AdaBoostM2 extends Classifier implements Serializable
      * <tt>numWeakClassifiersToUse</tt> classifiers
      * trained during boosting
      */
-    public Classification classify (Instance inst, int numWeakClassifiersToUse)
-    {
-    	if (numWeakClassifiersToUse <= 0 || numWeakClassifiersToUse > weakClassifiers.length)
-    		throw new IllegalArgumentException("number of weak learners to use out of range:" 
-    				+ numWeakClassifiersToUse);
+    public Classification classify(Instance inst, int numWeakClassifiersToUse) {
+        if (numWeakClassifiersToUse <= 0 || numWeakClassifiersToUse > weakClassifiers.length)
+            throw new IllegalArgumentException("number of weak learners to use out of range:"
+                    + numWeakClassifiersToUse);
 
-    	FeatureVector fv = (FeatureVector) inst.getData();
-    	assert (instancePipe == null || fv.getAlphabet () == this.instancePipe.getDataAlphabet ());
-    	
-    	int numClasses = getLabelAlphabet().size();
-    	double[] scores = new double[numClasses];
-    	int bestIndex;
-    	double sum = 0;
-    	// Gather scores of all weakClassifiers
-    	for (int round = 0; round < numWeakClassifiersToUse; round++) {
-    		bestIndex = weakClassifiers[round].classify(inst).getLabeling().getBestIndex();
-    		scores[bestIndex] += alphas[round];
-    		sum += scores[bestIndex];
-    	}
-    	// Normalize the scores
-    	for (int i = 0; i < scores.length; i++)
-    		scores[i] /= sum;
-    	return new Classification (inst, this, new LabelVector (getLabelAlphabet(), scores));
+        FeatureVector fv = (FeatureVector) inst.getData();
+        assert (instancePipe == null || fv.getAlphabet() == this.instancePipe.getDataAlphabet());
+
+        int numClasses = getLabelAlphabet().size();
+        double[] scores = new double[numClasses];
+        int bestIndex;
+        double sum = 0;
+        // Gather scores of all weakClassifiers
+        for (int round = 0; round < numWeakClassifiersToUse; round++) {
+            bestIndex = weakClassifiers[round].classify(inst).getLabeling().getBestIndex();
+            scores[bestIndex] += alphas[round];
+            sum += scores[bestIndex];
+        }
+        // Normalize the scores
+        for (int i = 0; i < scores.length; i++)
+            scores[i] /= sum;
+        return new Classification(inst, this, new LabelVector(getLabelAlphabet(), scores));
     }
-        
+
 }

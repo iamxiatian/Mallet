@@ -1,10 +1,10 @@
 package cc.mallet.optimize;
 
-import java.util.LinkedList;
-import java.util.logging.Logger;
-
 import cc.mallet.types.MatrixOps;
 import cc.mallet.util.MalletLogger;
+
+import java.util.LinkedList;
+import java.util.logging.Logger;
 
 /**
  * Implementation of orthant-wise limited memory quasi Newton method for
@@ -12,399 +12,395 @@ import cc.mallet.util.MalletLogger;
  * "Scalable training of l1-regularized log-linear models" by Galen Andrew and
  * Jianfeng Gao in ICML 2007 for details. This code is an adaptation of the
  * freely-available C++ code on Galen's webpage.
- * 
+ *
  * @author Kedar Bellare
  */
 public class OrthantWiseLimitedMemoryBFGS implements Optimizer {
-	private static Logger logger = MalletLogger
-			.getLogger(OrthantWiseLimitedMemoryBFGS.class.getName());
+    private static Logger logger = MalletLogger
+            .getLogger(OrthantWiseLimitedMemoryBFGS.class.getName());
+    final int maxIterations = 1000;
+    final double tolerance = .0001;
+    final double gradientTolerance = .001;
+    final double eps = 1.0e-5;
+    // The number of corrections used in BFGS update
+    // ideally 3 <= m <= 7. Larger m means more cpu time, memory.
+    final int m = 4;
+    boolean converged = false;
+    Optimizable.ByGradientValue optimizable;
+    // name of optimizable for value output
+    String optName;
+    double l1Weight;
+    // State of optimizer search
+    // oldValue = value before line search, value = value after line search
+    double oldValue, value, yDotY;
+    // grad = gradient
+    double[] grad, oldGrad, direction, steepestDescentDirection, parameters,
+            oldParameters;
+    // s = list of m previous "difference in parameters" values
+    // y = list of m previous "difference in grad" values
+    LinkedList<double[]> s, y;
+    // rho = intermediate calculation
+    LinkedList<Double> rhos;
+    double[] alphas;
+    int iterations;
 
-	boolean converged = false;
-	Optimizable.ByGradientValue optimizable;
-	// name of optimizable for value output
-	String optName;
-	final int maxIterations = 1000;
-	final double tolerance = .0001;
-	final double gradientTolerance = .001;
-	final double eps = 1.0e-5;
-	double l1Weight;
+    public OrthantWiseLimitedMemoryBFGS(Optimizable.ByGradientValue function) {
+        this(function, 0.0);
+    }
 
-	// The number of corrections used in BFGS update
-	// ideally 3 <= m <= 7. Larger m means more cpu time, memory.
-	final int m = 4;
+    public OrthantWiseLimitedMemoryBFGS(Optimizable.ByGradientValue function,
+                                        double l1wt) {
+        this.optimizable = function;
+        this.l1Weight = l1wt;
+        String parts[] = optimizable.getClass().getName().split("\\.");
+        this.optName = parts[parts.length - 1];
 
-	// State of optimizer search
-	// oldValue = value before line search, value = value after line search
-	double oldValue, value, yDotY;
-	// grad = gradient
-	double[] grad, oldGrad, direction, steepestDescentDirection, parameters,
-			oldParameters;
-	// s = list of m previous "difference in parameters" values
-	// y = list of m previous "difference in grad" values
-	LinkedList<double[]> s, y;
-	// rho = intermediate calculation
-	LinkedList<Double> rhos;
-	double[] alphas;
-	int iterations;
+        // initialize optimizer state
+        iterations = 0;
+        s = new LinkedList<double[]>();
+        y = new LinkedList<double[]>();
+        rhos = new LinkedList<Double>();
+        alphas = new double[m];
+        MatrixOps.setAll(alphas, 0.0);
+        yDotY = 0;
 
-	public OrthantWiseLimitedMemoryBFGS(Optimizable.ByGradientValue function) {
-		this(function, 0.0);
-	}
+        int numParameters = optimizable.getNumParameters();
 
-	public OrthantWiseLimitedMemoryBFGS(Optimizable.ByGradientValue function,
-			double l1wt) {
-		this.optimizable = function;
-		this.l1Weight = l1wt;
-		String parts[] = optimizable.getClass().getName().split("\\.");
-		this.optName = parts[parts.length - 1];
+        // get initial parameters
+        parameters = new double[numParameters];
+        optimizable.getParameters(parameters);
 
-		// initialize optimizer state
-		iterations = 0;
-		s = new LinkedList<double[]>();
-		y = new LinkedList<double[]>();
-		rhos = new LinkedList<Double>();
-		alphas = new double[m];
-		MatrixOps.setAll(alphas, 0.0);
-		yDotY = 0;
+        // get initial value
+        value = evalL1();
 
-		int numParameters = optimizable.getNumParameters();
+        // get initial gradient
+        grad = new double[numParameters];
+        evalGradient();
 
-		// get initial parameters
-		parameters = new double[numParameters];
-		optimizable.getParameters(parameters);
+        // initialize direction
+        direction = new double[numParameters];
+        steepestDescentDirection = new double[numParameters];
 
-		// get initial value
-		value = evalL1();
+        // initialize backups
+        oldParameters = new double[numParameters];
+        oldGrad = new double[numParameters];
+    }
 
-		// get initial gradient
-		grad = new double[numParameters];
-		evalGradient();
+    public Optimizable getOptimizable() {
+        return optimizable;
+    }
 
-		// initialize direction
-		direction = new double[numParameters];
-		steepestDescentDirection = new double[numParameters];
+    public boolean isConverged() {
+        return converged;
+    }
 
-		// initialize backups
-		oldParameters = new double[numParameters];
-		oldGrad = new double[numParameters];
-	}
+    public int getIteration() {
+        return iterations;
+    }
 
-	public Optimizable getOptimizable() {
-		return optimizable;
-	}
+    public boolean optimize() {
+        return optimize(Integer.MAX_VALUE);
+    }
 
-	public boolean isConverged() {
-		return converged;
-	}
+    public boolean optimize(int numIterations) {
+        logger.fine("Entering OWL-BFGS.optimize(). L1 weight=" + l1Weight
+                + " Initial Value=" + value);
 
-	public int getIteration() {
-		return iterations;
-	}
+        for (int iter = 0; iter < numIterations; iter++) {
+            // create descent direction
+            makeSteepestDescDir();
 
-	public boolean optimize() {
-		return optimize(Integer.MAX_VALUE);
-	}
+            // adjust for curvature
+            mapDirByInverseHessian(yDotY);
 
-	public boolean optimize(int numIterations) {
-		logger.fine("Entering OWL-BFGS.optimize(). L1 weight=" + l1Weight
-				+ " Initial Value=" + value);
+            // fix direction signs
+            fixDirSigns();
 
-		for (int iter = 0; iter < numIterations; iter++) {
-			// create descent direction
-			makeSteepestDescDir();
+            // backup parameters and gradient; then perform line-search
+            storeSrcInDest(parameters, oldParameters);
+            storeSrcInDest(grad, oldGrad);
+            backTrackingLineSearch();
 
-			// adjust for curvature
-			mapDirByInverseHessian(yDotY);
+            // update gradient after line search
+            evalGradient();
 
-			// fix direction signs
-			fixDirSigns();
+            // check for termination conditions
+            if (checkValueTerminationCondition()) {
+                logger.info("Exiting OWL-BFGS on termination #1:");
+                logger.info("value difference below tolerance (oldValue: "
+                        + oldValue + " newValue: " + value);
+                converged = true;
+                return true;
+            }
 
-			// backup parameters and gradient; then perform line-search
-			storeSrcInDest(parameters, oldParameters);
-			storeSrcInDest(grad, oldGrad);
-			backTrackingLineSearch();
+            if (checkGradientTerminationCondition()) {
+                logger.info("Exiting OWL-BFGS on termination #2:");
+                logger.info("gradient=" + MatrixOps.twoNorm(grad) + " < "
+                        + gradientTolerance);
+                converged = true;
+                return true;
+            }
 
-			// update gradient after line search
-			evalGradient();
+            // update hessian approximation
+            yDotY = shift();
 
-			// check for termination conditions
-			if (checkValueTerminationCondition()) {
-				logger.info("Exiting OWL-BFGS on termination #1:");
-				logger.info("value difference below tolerance (oldValue: "
-						+ oldValue + " newValue: " + value);
-				converged = true;
-				return true;
-			}
+            iterations++;
+            if (iterations > maxIterations) {
+                logger.info("Too many iterations in OWL-BFGS. "
+                        + "Continuing with current parameters.");
+                converged = true;
+                return true;
+            }
+        }
 
-			if (checkGradientTerminationCondition()) {
-				logger.info("Exiting OWL-BFGS on termination #2:");
-				logger.info("gradient=" + MatrixOps.twoNorm(grad) + " < "
-						+ gradientTolerance);
-				converged = true;
-				return true;
-			}
+        return false;
+    }
 
-			// update hessian approximation
-			yDotY = shift();
+    /**
+     * Evaluate value. Make it a minimization problem.
+     */
+    private double evalL1() {
+        double val = -optimizable.getValue();
+        double sumAbsWt = 0;
+        if (l1Weight > 0) {
+            for (double param : parameters) {
+                if (Double.isInfinite(param))
+                    continue;
+                sumAbsWt += Math.abs(param) * l1Weight;
+            }
+        }
+        logger.info("getValue() (" + optName + ".getValue() = " + val
+                + " + |w|=" + sumAbsWt + ") = " + (val + sumAbsWt));
 
-			iterations++;
-			if (iterations > maxIterations) {
-				logger.info("Too many iterations in OWL-BFGS. "
-						+ "Continuing with current parameters.");
-				converged = true;
-				return true;
-			}
-		}
+        return val + sumAbsWt;
+    }
 
-		return false;
-	}
+    /**
+     * Evaluate gradient, make it a descent direction.
+     */
+    private void evalGradient() {
+        optimizable.getValueGradient(grad);
+        adjustGradForInfiniteParams(grad);
+        MatrixOps.timesEquals(grad, -1.0);
+    }
 
-	/**
-	 * Evaluate value. Make it a minimization problem.
-	 */
-	private double evalL1() {
-		double val = -optimizable.getValue();
-		double sumAbsWt = 0;
-		if (l1Weight > 0) {
-			for (double param : parameters) {
-				if (Double.isInfinite(param))
-					continue;
-				sumAbsWt += Math.abs(param) * l1Weight;
-			}
-		}
-		logger.info("getValue() (" + optName + ".getValue() = " + val
-				+ " + |w|=" + sumAbsWt + ") = " + (val + sumAbsWt));
+    /**
+     * Creates steepest ascent direction from gradient and L1-regularization.
+     */
+    private void makeSteepestDescDir() {
+        if (l1Weight == 0) {
+            for (int i = 0; i < grad.length; i++) {
+                direction[i] = -grad[i];
+            }
+        } else {
+            for (int i = 0; i < grad.length; i++) {
+                if (parameters[i] < 0) {
+                    direction[i] = -grad[i] + l1Weight;
+                } else if (parameters[i] > 0) {
+                    direction[i] = -grad[i] - l1Weight;
+                } else {
+                    if (grad[i] < -l1Weight) {
+                        direction[i] = -grad[i] - l1Weight;
+                    } else if (grad[i] > l1Weight) {
+                        direction[i] = -grad[i] + l1Weight;
+                    } else {
+                        direction[i] = 0;
+                    }
+                }
+            }
+        }
 
-		return val + sumAbsWt;
-	}
+        storeSrcInDest(direction, steepestDescentDirection);
+    }
 
-	/**
-	 * Evaluate gradient, make it a descent direction.
-	 */
-	private void evalGradient() {
-		optimizable.getValueGradient(grad);
-		adjustGradForInfiniteParams(grad);
-		MatrixOps.timesEquals(grad, -1.0);
-	}
+    private void adjustGradForInfiniteParams(double d[]) {
+        for (int i = 0; i < parameters.length; i++) {
+            if (Double.isInfinite(parameters[i]))
+                d[i] = 0;
+        }
+    }
 
-	/**
-	 * Creates steepest ascent direction from gradient and L1-regularization.
-	 */
-	private void makeSteepestDescDir() {
-		if (l1Weight == 0) {
-			for (int i = 0; i < grad.length; i++) {
-				direction[i] = -grad[i];
-			}
-		} else {
-			for (int i = 0; i < grad.length; i++) {
-				if (parameters[i] < 0) {
-					direction[i] = -grad[i] + l1Weight;
-				} else if (parameters[i] > 0) {
-					direction[i] = -grad[i] - l1Weight;
-				} else {
-					if (grad[i] < -l1Weight) {
-						direction[i] = -grad[i] - l1Weight;
-					} else if (grad[i] > l1Weight) {
-						direction[i] = -grad[i] + l1Weight;
-					} else {
-						direction[i] = 0;
-					}
-				}
-			}
-		}
+    /**
+     * Adjusts direction based on approximate hessian inverse.
+     *
+     * @param yDotY y^T * y in BFGS calculation.
+     */
+    private void mapDirByInverseHessian(double yDotY) {
+        if (s.size() == 0)
+            return;
 
-		storeSrcInDest(direction, steepestDescentDirection);
-	}
+        int count = s.size();
+        for (int i = count - 1; i >= 0; i--) {
+            alphas[i] = -MatrixOps.dotProduct(s.get(i), direction)
+                    / rhos.get(i);
+            MatrixOps.plusEquals(direction, y.get(i), alphas[i]);
+        }
 
-	private void adjustGradForInfiniteParams(double d[]) {
-		for (int i = 0; i < parameters.length; i++) {
-			if (Double.isInfinite(parameters[i]))
-				d[i] = 0;
-		}
-	}
+        double scalar = rhos.get(count - 1) / yDotY;
+        logger.fine("Direction multiplier = " + scalar);
+        MatrixOps.timesEquals(direction, scalar);
 
-	/**
-	 * Adjusts direction based on approximate hessian inverse.
-	 * 
-	 * @param yDotY
-	 *            y^T * y in BFGS calculation.
-	 */
-	private void mapDirByInverseHessian(double yDotY) {
-		if (s.size() == 0)
-			return;
+        for (int i = 0; i < count; i++) {
+            double beta = MatrixOps.dotProduct(y.get(i), direction)
+                    / rhos.get(i);
+            MatrixOps.plusEquals(direction, s.get(i), -alphas[i] - beta);
+        }
+    }
 
-		int count = s.size();
-		for (int i = count - 1; i >= 0; i--) {
-			alphas[i] = -MatrixOps.dotProduct(s.get(i), direction)
-					/ rhos.get(i);
-			MatrixOps.plusEquals(direction, y.get(i), alphas[i]);
-		}
+    private void fixDirSigns() {
+        if (l1Weight > 0) {
+            for (int i = 0; i < direction.length; i++) {
+                if (direction[i] * steepestDescentDirection[i] <= 0) {
+                    direction[i] = 0;
+                }
+            }
+        }
+    }
 
-		double scalar = rhos.get(count - 1) / yDotY;
-		logger.fine("Direction multiplier = " + scalar);
-		MatrixOps.timesEquals(direction, scalar);
+    private double dirDeriv() {
+        if (l1Weight == 0) {
+            return MatrixOps.dotProduct(direction, grad);
+        } else {
+            double val = 0.0;
+            for (int i = 0; i < direction.length; i++) {
+                if (direction[i] != 0) {
+                    if (parameters[i] < 0) {
+                        val += direction[i] * (grad[i] - l1Weight);
+                    } else if (parameters[i] > 0) {
+                        val += direction[i] * (grad[i] + l1Weight);
+                    } else if (direction[i] < 0) {
+                        val += direction[i] * (grad[i] - l1Weight);
+                    } else if (direction[i] > 0) {
+                        val += direction[i] * (grad[i] + l1Weight);
+                    }
+                }
+            }
 
-		for (int i = 0; i < count; i++) {
-			double beta = MatrixOps.dotProduct(y.get(i), direction)
-					/ rhos.get(i);
-			MatrixOps.plusEquals(direction, s.get(i), -alphas[i] - beta);
-		}
-	}
+            return val;
+        }
+    }
 
-	private void fixDirSigns() {
-		if (l1Weight > 0) {
-			for (int i = 0; i < direction.length; i++) {
-				if (direction[i] * steepestDescentDirection[i] <= 0) {
-					direction[i] = 0;
-				}
-			}
-		}
-	}
+    private double shift() {
+        double[] nextS = null, nextY = null;
 
-	private double dirDeriv() {
-		if (l1Weight == 0) {
-			return MatrixOps.dotProduct(direction, grad);
-		} else {
-			double val = 0.0;
-			for (int i = 0; i < direction.length; i++) {
-				if (direction[i] != 0) {
-					if (parameters[i] < 0) {
-						val += direction[i] * (grad[i] - l1Weight);
-					} else if (parameters[i] > 0) {
-						val += direction[i] * (grad[i] + l1Weight);
-					} else if (direction[i] < 0) {
-						val += direction[i] * (grad[i] - l1Weight);
-					} else if (direction[i] > 0) {
-						val += direction[i] * (grad[i] + l1Weight);
-					}
-				}
-			}
+        int listSize = s.size();
+        if (listSize < m) {
+            nextS = new double[parameters.length];
+            nextY = new double[parameters.length];
+        } else {
+            nextS = s.removeFirst();
+            nextY = y.removeFirst();
+            rhos.removeFirst();
+        }
 
-			return val;
-		}
-	}
+        double rho = 0.0;
+        double yDotY = 0.0;
+        for (int i = 0; i < parameters.length; i++) {
+            if (Double.isInfinite(parameters[i])
+                    && Double.isInfinite(oldParameters[i])
+                    && parameters[i] * oldParameters[i] > 0)
+                nextS[i] = 0;
+            else
+                nextS[i] = parameters[i] - oldParameters[i];
 
-	private double shift() {
-		double[] nextS = null, nextY = null;
+            if (Double.isInfinite(grad[i]) && Double.isInfinite(oldGrad[i])
+                    && grad[i] * oldGrad[i] > 0)
+                nextY[i] = 0;
+            else
+                nextY[i] = grad[i] - oldGrad[i];
 
-		int listSize = s.size();
-		if (listSize < m) {
-			nextS = new double[parameters.length];
-			nextY = new double[parameters.length];
-		} else {
-			nextS = s.removeFirst();
-			nextY = y.removeFirst();
-			rhos.removeFirst();
-		}
+            rho += nextS[i] * nextY[i];
+            yDotY += nextY[i] * nextY[i];
+        }
 
-		double rho = 0.0;
-		double yDotY = 0.0;
-		for (int i = 0; i < parameters.length; i++) {
-			if (Double.isInfinite(parameters[i])
-					&& Double.isInfinite(oldParameters[i])
-					&& parameters[i] * oldParameters[i] > 0)
-				nextS[i] = 0;
-			else
-				nextS[i] = parameters[i] - oldParameters[i];
+        logger.fine("rho=" + rho);
+        if (rho < 0) {
+            throw new InvalidOptimizableException("rho = " + rho + " < 0: "
+                    + "Invalid hessian inverse. "
+                    + "Gradient change should be opposite of parameter change.");
+        }
 
-			if (Double.isInfinite(grad[i]) && Double.isInfinite(oldGrad[i])
-					&& grad[i] * oldGrad[i] > 0)
-				nextY[i] = 0;
-			else
-				nextY[i] = grad[i] - oldGrad[i];
+        s.addLast(nextS);
+        y.addLast(nextY);
+        rhos.addLast(rho);
 
-			rho += nextS[i] * nextY[i];
-			yDotY += nextY[i] * nextY[i];
-		}
+        // update old params and grad
+        storeSrcInDest(parameters, oldParameters);
+        storeSrcInDest(grad, oldGrad);
 
-		logger.fine("rho=" + rho);
-		if (rho < 0) {
-			throw new InvalidOptimizableException("rho = " + rho + " < 0: "
-					+ "Invalid hessian inverse. "
-					+ "Gradient change should be opposite of parameter change.");
-		}
+        return yDotY;
+    }
 
-		s.addLast(nextS);
-		y.addLast(nextY);
-		rhos.addLast(rho);
+    private void storeSrcInDest(double src[], double dest[]) {
+        System.arraycopy(src, 0, dest, 0, src.length);
+    }
 
-		// update old params and grad
-		storeSrcInDest(parameters, oldParameters);
-		storeSrcInDest(grad, oldGrad);
+    // backtrack line search
+    private void backTrackingLineSearch() {
+        double origDirDeriv = dirDeriv();
+        if (origDirDeriv >= 0) {
+            throw new InvalidOptimizableException(
+                    "L-BFGS chose a non-ascent direction: check your gradient!");
+        }
 
-		return yDotY;
-	}
+        double alpha = 1.0;
+        double backoff = 0.5;
+        if (iterations == 0) {
+            double normDir = Math.sqrt(MatrixOps.dotProduct(direction,
+                    direction));
+            alpha = 1.0 / normDir;
+            backoff = 0.1;
+        }
 
-	private void storeSrcInDest(double src[], double dest[]) {
-		System.arraycopy(src, 0, dest, 0, src.length);
-	}
+        final double c1 = 1e-4;
+        // store old value
+        oldValue = value;
 
-	// backtrack line search
-	private void backTrackingLineSearch() {
-		double origDirDeriv = dirDeriv();
-		if (origDirDeriv >= 0) {
-			throw new InvalidOptimizableException(
-					"L-BFGS chose a non-ascent direction: check your gradient!");
-		}
+        logger.fine("*** Starting line search iter=" + iterations);
+        logger.fine("iter[" + iterations + "] Value at start of line search = "
+                + value);
 
-		double alpha = 1.0;
-		double backoff = 0.5;
-		if (iterations == 0) {
-			double normDir = Math.sqrt(MatrixOps.dotProduct(direction,
-					direction));
-			alpha = 1.0 / normDir;
-			backoff = 0.1;
-		}
+        while (true) {
+            // update parameters and gradient
+            getNextPoint(alpha);
 
-		final double c1 = 1e-4;
-		// store old value
-		oldValue = value;
+            // find new value
+            value = evalL1();
 
-		logger.fine("*** Starting line search iter=" + iterations);
-		logger.fine("iter[" + iterations + "] Value at start of line search = "
-				+ value);
+            logger.fine("iter[" + iterations + "] Using alpha = " + alpha
+                    + " new value = " + value + " |grad|="
+                    + MatrixOps.twoNorm(grad) + " |x|="
+                    + MatrixOps.twoNorm(parameters));
 
-		while (true) {
-			// update parameters and gradient
-			getNextPoint(alpha);
+            if (value <= oldValue + c1 * origDirDeriv * alpha)
+                break;
 
-			// find new value
-			value = evalL1();
+            alpha *= backoff;
+        }
+    }
 
-			logger.fine("iter[" + iterations + "] Using alpha = " + alpha
-					+ " new value = " + value + " |grad|="
-					+ MatrixOps.twoNorm(grad) + " |x|="
-					+ MatrixOps.twoNorm(parameters));
+    private void getNextPoint(double alpha) {
+        for (int i = 0; i < parameters.length; i++) {
+            parameters[i] = oldParameters[i] + direction[i] * alpha;
+            if (l1Weight > 0) {
+                // do not allow to cross orthant boundaries if using
+                // L1-regularization
+                if (oldParameters[i] * parameters[i] < 0) {
+                    parameters[i] = 0.0;
+                }
+            }
+        }
 
-			if (value <= oldValue + c1 * origDirDeriv * alpha)
-				break;
+        optimizable.setParameters(parameters);
+    }
 
-			alpha *= backoff;
-		}
-	}
+    // termination conditions
+    private boolean checkValueTerminationCondition() {
+        return (2.0 * Math.abs(value - oldValue) <= tolerance
+                * (Math.abs(value) + Math.abs(oldValue) + eps));
+    }
 
-	private void getNextPoint(double alpha) {
-		for (int i = 0; i < parameters.length; i++) {
-			parameters[i] = oldParameters[i] + direction[i] * alpha;
-			if (l1Weight > 0) {
-				// do not allow to cross orthant boundaries if using
-				// L1-regularization
-				if (oldParameters[i] * parameters[i] < 0) {
-					parameters[i] = 0.0;
-				}
-			}
-		}
-
-		optimizable.setParameters(parameters);
-	}
-
-	// termination conditions
-	private boolean checkValueTerminationCondition() {
-		return (2.0 * Math.abs(value - oldValue) <= tolerance
-				* (Math.abs(value) + Math.abs(oldValue) + eps));
-	}
-
-	private boolean checkGradientTerminationCondition() {
-		return MatrixOps.twoNorm(grad) < gradientTolerance;
-	}
+    private boolean checkGradientTerminationCondition() {
+        return MatrixOps.twoNorm(grad) < gradientTolerance;
+    }
 }

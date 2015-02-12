@@ -6,20 +6,17 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.util;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileFilter;
 
-public class DirectoryFilter implements FileFilter
-{
-	public boolean accept (File f)
-	{
-		return f.isDirectory ();
-	}
+public class DirectoryFilter implements FileFilter {
+    public boolean accept(File f) {
+        return f.isDirectory();
+    }
 }

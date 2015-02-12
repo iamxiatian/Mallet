@@ -14,6 +14,6 @@ package cc.mallet.extract;
  */
 public interface ExtractionEvaluator {
 
-  public void evaluate (Extraction extraction);
+    public void evaluate(Extraction extraction);
 
 }

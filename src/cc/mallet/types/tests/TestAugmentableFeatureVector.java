@@ -10,7 +10,9 @@ import cc.mallet.types.Alphabet;
 import cc.mallet.types.AugmentableFeatureVector;
 import cc.mallet.types.FeatureVector;
 import cc.mallet.types.SparseVector;
-import junit.framework.*;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
 /**
  * Created: Dec 30, 2004
@@ -20,87 +22,79 @@ import junit.framework.*;
  */
 public class TestAugmentableFeatureVector extends TestCase {
 
-  public TestAugmentableFeatureVector (String name)
-  {
-    super (name);
-  }
-
-  public static Test suite ()
-  {
-    return new TestSuite (TestAugmentableFeatureVector.class);
-  }
-
-  public void testDotProductBinaryToSV ()
-  {
-    SparseVector v = makeSparseVectorToN (5);
-    AugmentableFeatureVector afv = makeAfv (new int[] { 1, 3 }, true);
-    double dp = afv.dotProduct (v);
-    assertEquals (4.0, dp, 1e-5);
-    new AugmentableFeatureVector (new Alphabet(), true);
-  }
-
-  public void testDotProductSparseASVToSV ()
-  {
-    SparseVector v = makeSparseVectorToN (7);
-    AugmentableFeatureVector afv = makeAfv (new int[] { 1, 3 }, false);
-    double dp = afv.dotProduct (v);
-    assertEquals (4.0, dp, 1e-5);
-
-    afv = makeAfv (new int[] { 2, 5 }, false);
-    dp = afv.dotProduct (v);
-    assertEquals (7.0, dp, 1e-5);
-  }
-
-  private AugmentableFeatureVector makeAfv (int[] ints, boolean binary)
-  {
-    AugmentableFeatureVector afv = new AugmentableFeatureVector (new Alphabet(), binary);
-    for (int i = 0; i < ints.length; i++) {
-      int idx = ints[i];
-      afv.add (idx, 1.0);
-    }
-    return afv;
-  }
-
-  private SparseVector makeSparseVectorToN (int N)
-  {
-    double[] vals = new double [N];
-    for (int i = 0; i < N; i++) {
-      vals [i] = i;
-    }
-    return new SparseVector (vals);
-  }
-
-  public void testAddWithPrefix ()
-  {
-    Alphabet dict = new Alphabet ();
-    dict.lookupIndex ("ZERO");
-    dict.lookupIndex ("ONE");
-    dict.lookupIndex ("TWO");
-    dict.lookupIndex ("THREE");
-
-    FeatureVector fv = new FeatureVector (dict, new int[] { 1,3 });
-
-    AugmentableFeatureVector afv = new AugmentableFeatureVector (new Alphabet (), true);
-    afv.add (fv, "O:");
-
-    assertEquals (4, dict.size());
-    assertEquals (2, afv.getAlphabet ().size());
-    assertEquals ("O:ONE\nO:THREE\n", afv.toString ());
-  }
-
-  public static void main (String[] args) throws Throwable
-  {
-    TestSuite theSuite;
-    if (args.length > 0) {
-      theSuite = new TestSuite ();
-      for (int i = 0; i < args.length; i++) {
-        theSuite.addTest (new TestAugmentableFeatureVector (args[i]));
-      }
-    } else {
-      theSuite = (TestSuite) suite ();
+    public TestAugmentableFeatureVector(String name) {
+        super(name);
     }
 
-    junit.textui.TestRunner.run (theSuite);
-  }
+    public static Test suite() {
+        return new TestSuite(TestAugmentableFeatureVector.class);
+    }
+
+    public static void main(String[] args) throws Throwable {
+        TestSuite theSuite;
+        if (args.length > 0) {
+            theSuite = new TestSuite();
+            for (int i = 0; i < args.length; i++) {
+                theSuite.addTest(new TestAugmentableFeatureVector(args[i]));
+            }
+        } else {
+            theSuite = (TestSuite) suite();
+        }
+
+        junit.textui.TestRunner.run(theSuite);
+    }
+
+    public void testDotProductBinaryToSV() {
+        SparseVector v = makeSparseVectorToN(5);
+        AugmentableFeatureVector afv = makeAfv(new int[]{1, 3}, true);
+        double dp = afv.dotProduct(v);
+        assertEquals(4.0, dp, 1e-5);
+        new AugmentableFeatureVector(new Alphabet(), true);
+    }
+
+    public void testDotProductSparseASVToSV() {
+        SparseVector v = makeSparseVectorToN(7);
+        AugmentableFeatureVector afv = makeAfv(new int[]{1, 3}, false);
+        double dp = afv.dotProduct(v);
+        assertEquals(4.0, dp, 1e-5);
+
+        afv = makeAfv(new int[]{2, 5}, false);
+        dp = afv.dotProduct(v);
+        assertEquals(7.0, dp, 1e-5);
+    }
+
+    private AugmentableFeatureVector makeAfv(int[] ints, boolean binary) {
+        AugmentableFeatureVector afv = new AugmentableFeatureVector(new Alphabet(), binary);
+        for (int i = 0; i < ints.length; i++) {
+            int idx = ints[i];
+            afv.add(idx, 1.0);
+        }
+        return afv;
+    }
+
+    private SparseVector makeSparseVectorToN(int N) {
+        double[] vals = new double[N];
+        for (int i = 0; i < N; i++) {
+            vals[i] = i;
+        }
+        return new SparseVector(vals);
+    }
+
+    public void testAddWithPrefix() {
+        Alphabet dict = new Alphabet();
+        dict.lookupIndex("ZERO");
+        dict.lookupIndex("ONE");
+        dict.lookupIndex("TWO");
+        dict.lookupIndex("THREE");
+
+        FeatureVector fv = new FeatureVector(dict, new int[]{1, 3});
+
+        AugmentableFeatureVector afv = new AugmentableFeatureVector(new Alphabet(), true);
+        afv.add(fv, "O:");
+
+        assertEquals(4, dict.size());
+        assertEquals(2, afv.getAlphabet().size());
+        assertEquals("O:ONE\nO:THREE\n", afv.toString());
+    }
 
 }

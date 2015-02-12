@@ -6,60 +6,49 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.util;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileFilter;
 import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 
-import cc.mallet.types.Alphabet;
-import cc.mallet.types.Label;
+public class RegexFileFilter implements FileFilter {
+    Pattern absolutePathRegex;
+    Pattern nameRegex;
 
-public class RegexFileFilter implements FileFilter
-{
-	Pattern absolutePathRegex;
-	Pattern nameRegex;
-		
-	public RegexFileFilter (Pattern absolutePathRegex,
-													Pattern filenameRegex)
-	{
-		this.absolutePathRegex = absolutePathRegex;
-		this.nameRegex = filenameRegex;
-	}
-		
-	public RegexFileFilter (String absolutePathRegex,
-													String filenameRegex)
-	{
-		this (absolutePathRegex != null ? Pattern.compile (absolutePathRegex) : null,
-					filenameRegex != null ? Pattern.compile (filenameRegex) : null);
-	}
-		
-	public RegexFileFilter (Pattern nameRegex)
-	{
-		this (null, nameRegex);
-	}
+    public RegexFileFilter(Pattern absolutePathRegex,
+                           Pattern filenameRegex) {
+        this.absolutePathRegex = absolutePathRegex;
+        this.nameRegex = filenameRegex;
+    }
 
-	public RegexFileFilter (String filenameRegex)
-	{
-		this (filenameRegex != null ? Pattern.compile (filenameRegex) : null);
-	}
+    public RegexFileFilter(String absolutePathRegex,
+                           String filenameRegex) {
+        this(absolutePathRegex != null ? Pattern.compile(absolutePathRegex) : null,
+                filenameRegex != null ? Pattern.compile(filenameRegex) : null);
+    }
 
-	public boolean accept (File f)
-	{
-		boolean ret = ((absolutePathRegex == null
-										|| absolutePathRegex.matcher(f.getAbsolutePath()).matches())
-									 &&
-									 (nameRegex == null
-										|| nameRegex.matcher(f.getName()).matches()));
-		//System.out.println ("RegexFileFilter accept "+f+" nameRegex="+nameRegex.pattern()+" ret="+ret);
-		return ret;
-	}
+    public RegexFileFilter(Pattern nameRegex) {
+        this(null, nameRegex);
+    }
+
+    public RegexFileFilter(String filenameRegex) {
+        this(filenameRegex != null ? Pattern.compile(filenameRegex) : null);
+    }
+
+    public boolean accept(File f) {
+        boolean ret = ((absolutePathRegex == null
+                || absolutePathRegex.matcher(f.getAbsolutePath()).matches())
+                &&
+                (nameRegex == null
+                        || nameRegex.matcher(f.getName()).matches()));
+        //System.out.println ("RegexFileFilter accept "+f+" nameRegex="+nameRegex.pattern()+" ret="+ret);
+        return ret;
+    }
 
 }
 

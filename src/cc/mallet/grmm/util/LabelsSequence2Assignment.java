@@ -15,10 +15,9 @@ import cc.mallet.types.LabelsSequence;
  */
 public class LabelsSequence2Assignment extends Pipe {
 
-  public Instance pipe (Instance carrier)
-  {
-    LabelsSequence lbls = (LabelsSequence) carrier.getTarget ();
-    carrier.setTarget (new LabelsAssignment (lbls));
-    return carrier;
-  }
+    public Instance pipe(Instance carrier) {
+        LabelsSequence lbls = (LabelsSequence) carrier.getTarget();
+        carrier.setTarget(new LabelsAssignment(lbls));
+        return carrier;
+    }
 }

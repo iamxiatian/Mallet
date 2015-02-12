@@ -6,11 +6,14 @@
    information, see the file `LICENSE' included with this distribution. */
 package cc.mallet.grmm.types;
 
-import java.util.*;
-import java.io.Serializable;
-import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Created: Dec 15, 2005
@@ -20,139 +23,113 @@ import java.io.ObjectOutputStream;
  */
 public class UnmodifiableVarSet implements VarSet, Serializable {
 
-  transient private VarSet subVarSet;
+    private static final long serialVersionUID = 1L;
+    private static final int SERIAL_VERSION = 1;
+    transient private VarSet subVarSet;
 
-  public UnmodifiableVarSet (VarSet subVarSet)
-  {
-    this.subVarSet = subVarSet;
-  }
+    public UnmodifiableVarSet(VarSet subVarSet) {
+        this.subVarSet = subVarSet;
+    }
 
-  public Variable get (int idx)
-  {
-    return subVarSet.get (idx);
-  }
+    public Variable get(int idx) {
+        return subVarSet.get(idx);
+    }
 
-  public Set vertices ()
-  {
-    return Collections.unmodifiableSet (subVarSet);
-  }
+    public Set vertices() {
+        return Collections.unmodifiableSet(subVarSet);
+    }
 
-  public Variable[] toVariableArray ()
-  {
-    return subVarSet.toVariableArray ();
-  }
+    public Variable[] toVariableArray() {
+        return subVarSet.toVariableArray();
+    }
 
-  public int weight ()
-  {
-    return subVarSet.weight ();
-  }
+    public int weight() {
+        return subVarSet.weight();
+    }
 
-  public AssignmentIterator assignmentIterator ()
-  {
-    return subVarSet.assignmentIterator ();
-  }
+    public AssignmentIterator assignmentIterator() {
+        return subVarSet.assignmentIterator();
+    }
 
-  public VarSet intersection (VarSet c)
-  {
-    return subVarSet.intersection (c);
-  }
+    public VarSet intersection(VarSet c) {
+        return subVarSet.intersection(c);
+    }
 
-  public int size ()
-  {
-    return subVarSet.size ();
-  }
+    public int size() {
+        return subVarSet.size();
+    }
 
-  public boolean isEmpty ()
-  {
-    return subVarSet.isEmpty ();
-  }
+    public boolean isEmpty() {
+        return subVarSet.isEmpty();
+    }
 
-  public boolean contains (Object o)
-  {
-    return subVarSet.contains (o);
-  }
+    public boolean contains(Object o) {
+        return subVarSet.contains(o);
+    }
 
-  public Iterator iterator ()
-  {
-    return subVarSet.iterator ();
-  }
+    public Iterator iterator() {
+        return subVarSet.iterator();
+    }
 
-  public Object[] toArray ()
-  {
-    return subVarSet.toArray ();
-  }
+    public Object[] toArray() {
+        return subVarSet.toArray();
+    }
 
-  public Object[] toArray (Object[] objects)
-  {
-    return subVarSet.toArray (objects);
-  }
+    public Object[] toArray(Object[] objects) {
+        return subVarSet.toArray(objects);
+    }
 
-  public boolean add (Object o)
-  {
-    throw new UnsupportedOperationException ("Attempt to modify unmodifiable clique: "+this);
-  }
+    public boolean add(Object o) {
+        throw new UnsupportedOperationException("Attempt to modify unmodifiable clique: " + this);
+    }
 
-  public boolean remove (Object o)
-  {
-    throw new UnsupportedOperationException ("Attempt to modify unmodifiable clique: "+this);
-  }
+    public boolean remove(Object o) {
+        throw new UnsupportedOperationException("Attempt to modify unmodifiable clique: " + this);
+    }
 
-  public boolean containsAll (Collection collection)
-  {
-    return subVarSet.containsAll (collection);
-  }
+    public boolean containsAll(Collection collection) {
+        return subVarSet.containsAll(collection);
+    }
 
-  public boolean addAll (Collection collection)
-  {
-    throw new UnsupportedOperationException ("Attempt to modify unmodifiable clique: "+this);
-  }
+    public boolean addAll(Collection collection) {
+        throw new UnsupportedOperationException("Attempt to modify unmodifiable clique: " + this);
+    }
 
-  public boolean retainAll (Collection collection)
-  {
-    throw new UnsupportedOperationException ("Attempt to modify unmodifiable clique: "+this);
-  }
+    public boolean retainAll(Collection collection) {
+        throw new UnsupportedOperationException("Attempt to modify unmodifiable clique: " + this);
+    }
 
-  public boolean removeAll (Collection collection)
-  {
-    throw new UnsupportedOperationException ("Attempt to modify unmodifiable clique: "+this);
-  }
+    public boolean removeAll(Collection collection) {
+        throw new UnsupportedOperationException("Attempt to modify unmodifiable clique: " + this);
+    }
 
-  public void clear ()
-  {
+    public void clear() {
 
-    throw new UnsupportedOperationException ("Attempt to modify unmodifiable clique: "+this);
-  }
+        throw new UnsupportedOperationException("Attempt to modify unmodifiable clique: " + this);
+    }
 
-  public boolean equals (Object o)
-  {
-    return subVarSet.equals (o);
-  }
+    public boolean equals(Object o) {
+        return subVarSet.equals(o);
+    }
 
-  public int hashCode ()
-  {
-    return subVarSet.hashCode ();
-  }
+    public int hashCode() {
+        return subVarSet.hashCode();
+    }
 
-  public String toString ()
-  {
-    return subVarSet.toString ();
-  }
+    public String toString() {
+        return subVarSet.toString();
+    }
 
-  private static final long serialVersionUID = 1L;
-  private static final int SERIAL_VERSION = 1;
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        in.readInt(); // version
+        subVarSet = (VarSet) in.readObject();
+    }
 
-  private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException
-  {
-    in.defaultReadObject ();
-    in.readInt (); // version
-    subVarSet = (VarSet) in.readObject ();
-  }
-
-  private void writeObject (ObjectOutputStream out) throws IOException
-  {
-    out.defaultWriteObject ();
-    out.writeInt (SERIAL_VERSION);
-    out.writeObject (subVarSet);
-  }
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeInt(SERIAL_VERSION);
+        out.writeObject(subVarSet);
+    }
 
 }

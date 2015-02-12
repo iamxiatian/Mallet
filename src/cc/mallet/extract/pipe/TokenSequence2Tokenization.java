@@ -7,8 +7,6 @@
 package cc.mallet.extract.pipe;
 
 
-import java.util.ArrayList;
-
 import cc.mallet.extract.StringSpan;
 import cc.mallet.extract.StringTokenization;
 import cc.mallet.extract.Tokenization;
@@ -19,11 +17,11 @@ import cc.mallet.types.TokenSequence;
 
 /**
  * Heuristically converts a simple token sequence into a Tokenization
- *   that can be used with all the extract package goodies.
- * <P>
+ * that can be used with all the extract package goodies.
+ * <p>
  * Users of this class should be warned that the tokens' features and properties
- *  list are moved over directly, with no deep-copying. 
- *
+ * list are moved over directly, with no deep-copying.
+ * <p>
  * Created: Jan 21, 2005
  *
  * @author <A HREF="mailto:casutton@cs.umass.edu>casutton@cs.umass.edu</A>
@@ -31,37 +29,36 @@ import cc.mallet.types.TokenSequence;
  */
 public class TokenSequence2Tokenization extends Pipe {
 
-  public Instance pipe (Instance carrier)
-  {
-    Object data = carrier.getData ();
-    if (data instanceof Tokenization) {
-      // we're done
-    } else if (data instanceof TokenSequence) {
-      StringBuffer buf = new StringBuffer ();
-      TokenSequence ts = (TokenSequence) data;
-      StringTokenization spans = new StringTokenization (buf);  // I can use a StringBuffer as the doc! Awesome!
+    public Instance pipe(Instance carrier) {
+        Object data = carrier.getData();
+        if (data instanceof Tokenization) {
+            // we're done
+        } else if (data instanceof TokenSequence) {
+            StringBuffer buf = new StringBuffer();
+            TokenSequence ts = (TokenSequence) data;
+            StringTokenization spans = new StringTokenization(buf);  // I can use a StringBuffer as the doc! Awesome!
 
-      for (int i = 0; i < ts.size(); i++) {
-        Token token = ts.get(i);
+            for (int i = 0; i < ts.size(); i++) {
+                Token token = ts.get(i);
 
-        int start = buf.length ();
-        buf.append (token.getText());
-        int end = buf.length();
+                int start = buf.length();
+                buf.append(token.getText());
+                int end = buf.length();
 
-        StringSpan span = new StringSpan (buf, start, end);
-        span.setFeatures (token.getFeatures ());
-        span.setProperties (token.getProperties ());
+                StringSpan span = new StringSpan(buf, start, end);
+                span.setFeatures(token.getFeatures());
+                span.setProperties(token.getProperties());
 
-        spans.add (span);
-        buf.append (" ");
-      }
+                spans.add(span);
+                buf.append(" ");
+            }
 
-      carrier.setData (spans);
-    } else {
-      throw new IllegalArgumentException ("Can't convert "+data+" to Tokenization.");
+            carrier.setData(spans);
+        } else {
+            throw new IllegalArgumentException("Can't convert " + data + " to Tokenization.");
+        }
+
+        return carrier;
     }
-
-    return carrier;
-  }
 
 }

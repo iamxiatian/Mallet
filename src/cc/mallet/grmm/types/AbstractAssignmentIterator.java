@@ -16,64 +16,59 @@ import cc.mallet.types.Matrixn;
  */
 abstract class AbstractAssignmentIterator implements AssignmentIterator {
 
-  protected VarSet vertsList;
-  protected int max = 1;
-  private int[] sizes;
-  private Assignment assn = null;
+    protected VarSet vertsList;
+    protected int max = 1;
+    private int[] sizes;
+    private Assignment assn = null;
 
 
-  protected AbstractAssignmentIterator (VarSet verts)
-  {
-    vertsList = verts;
-    initSizes ();
-  }
-
-  private void initSizes ()
-  {
-    sizes = new int [vertsList.size()];
-    for (int i = 0; i < sizes.length; i++) {
-      Variable var = vertsList.get (i);
-      if (var.isContinuous ()) {
-        throw new UnsupportedOperationException ("Attempt to create AssignmentIterator over "+vertsList+", but "+var+" is continuous.");
-      }
-      sizes[i] = var.getNumOutcomes ();
+    protected AbstractAssignmentIterator(VarSet verts) {
+        vertsList = verts;
+        initSizes();
     }
-    max = vertsList.weight ();
-  }
 
-  protected Assignment constructAssignment ()
-  {
-    int current = indexOfCurrentAssn ();
-    if (sizes == null) initSizes ();  // Lazily build sizes array
-    int[] outcomes = new int [sizes.length];
-    Matrixn.singleToIndices (current, outcomes, sizes);
-    Variable[] vars = (Variable[]) vertsList.toArray (new Variable [0]);
-    return new Assignment (vars, outcomes);
-  }
-
-  public void remove() {
-    throw new UnsupportedOperationException
-      ("Attempt to remave assignment from Clique.");
-  }
-
-  public Assignment assignment ()
-  {
-    if (assn == null) {
-      assn = constructAssignment ();
-      return assn;
-    } else {
-      int current = indexOfCurrentAssn ();
-      int[] outcomes = new int [sizes.length];
-      Matrixn.singleToIndices (current, outcomes, sizes);
-      assn.setRow (0, outcomes);
-      return assn;
+    private void initSizes() {
+        sizes = new int[vertsList.size()];
+        for (int i = 0; i < sizes.length; i++) {
+            Variable var = vertsList.get(i);
+            if (var.isContinuous()) {
+                throw new UnsupportedOperationException("Attempt to create AssignmentIterator over " + vertsList + ", but " + var + " is continuous.");
+            }
+            sizes[i] = var.getNumOutcomes();
+        }
+        max = vertsList.weight();
     }
-  }
 
-  public Object next()
-  {
-    Assignment assn = assignment ();
-    advance ();
-    return assn;
-  }
+    protected Assignment constructAssignment() {
+        int current = indexOfCurrentAssn();
+        if (sizes == null) initSizes();  // Lazily build sizes array
+        int[] outcomes = new int[sizes.length];
+        Matrixn.singleToIndices(current, outcomes, sizes);
+        Variable[] vars = (Variable[]) vertsList.toArray(new Variable[0]);
+        return new Assignment(vars, outcomes);
+    }
+
+    public void remove() {
+        throw new UnsupportedOperationException
+                ("Attempt to remave assignment from Clique.");
+    }
+
+    public Assignment assignment() {
+        if (assn == null) {
+            assn = constructAssignment();
+            return assn;
+        } else {
+            int current = indexOfCurrentAssn();
+            int[] outcomes = new int[sizes.length];
+            Matrixn.singleToIndices(current, outcomes, sizes);
+            assn.setRow(0, outcomes);
+            return assn;
+        }
+    }
+
+    public Object next() {
+        Assignment assn = assignment();
+        advance();
+        return assn;
+    }
 }

@@ -7,11 +7,10 @@
 package cc.mallet.grmm.inference.gbp;
 
 
-import java.util.Iterator;
-
 import cc.mallet.grmm.types.Factor;
 import cc.mallet.grmm.types.LogTableFactor;
-import cc.mallet.grmm.types.TableFactor;
+
+import java.util.Iterator;
 
 /**
  * Created: May 29, 2005
@@ -21,42 +20,38 @@ import cc.mallet.grmm.types.TableFactor;
  */
 public abstract class AbstractMessageStrategy implements MessageStrategy {
 
-  protected MessageArray oldMessages;
-  protected MessageArray newMessages;
+    protected MessageArray oldMessages;
+    protected MessageArray newMessages;
 
-  public void setMessageArray (MessageArray oldMessages, MessageArray newMessages)
-  {
-    this.oldMessages = oldMessages;
-    this.newMessages = newMessages;
-  }
-
-  public MessageArray getOldMessages ()
-  {
-    return oldMessages;
-  }
-
-  public MessageArray getNewMessages ()
-  {
-    return newMessages;
-  }
-
-  Factor msgProduct (RegionEdge edge)
-  {
-    Factor product = new LogTableFactor (edge.from.vars);
-
-    for (Iterator it = edge.neighboringParents.iterator (); it.hasNext ();) {
-      RegionEdge otherEdge = (RegionEdge) it.next ();
-      Factor otherMsg = oldMessages.getMessage (otherEdge.from, otherEdge.to);
-
-      product.multiplyBy (otherMsg);
+    public void setMessageArray(MessageArray oldMessages, MessageArray newMessages) {
+        this.oldMessages = oldMessages;
+        this.newMessages = newMessages;
     }
 
-    for (Iterator it = edge.loopingMessages.iterator (); it.hasNext ();) {
-      RegionEdge otherEdge = (RegionEdge) it.next ();
-      Factor otherMsg = newMessages.getMessage (otherEdge.from, otherEdge.to);
-      product.divideBy (otherMsg);
+    public MessageArray getOldMessages() {
+        return oldMessages;
     }
 
-    return product;
-  }
+    public MessageArray getNewMessages() {
+        return newMessages;
+    }
+
+    Factor msgProduct(RegionEdge edge) {
+        Factor product = new LogTableFactor(edge.from.vars);
+
+        for (Iterator it = edge.neighboringParents.iterator(); it.hasNext(); ) {
+            RegionEdge otherEdge = (RegionEdge) it.next();
+            Factor otherMsg = oldMessages.getMessage(otherEdge.from, otherEdge.to);
+
+            product.multiplyBy(otherMsg);
+        }
+
+        for (Iterator it = edge.loopingMessages.iterator(); it.hasNext(); ) {
+            RegionEdge otherEdge = (RegionEdge) it.next();
+            Factor otherMsg = newMessages.getMessage(otherEdge.from, otherEdge.to);
+            product.divideBy(otherMsg);
+        }
+
+        return product;
+    }
 }

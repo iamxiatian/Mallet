@@ -7,12 +7,12 @@
 package cc.mallet.grmm.util;
 
 
-import java.util.Arrays;
-
 import cc.mallet.types.Matrix;
 import cc.mallet.types.MatrixOps;
 import cc.mallet.types.Matrixn;
 import cc.mallet.types.SparseMatrixn;
+
+import java.util.Arrays;
 
 /**
  * Static Matrix constructors.
@@ -21,37 +21,35 @@ import cc.mallet.types.SparseMatrixn;
 public class Matrices {
 
 
-  /* Returns a diagonal matrix of the given dimensions.  It need not be square. */
-  public static Matrix diag (int[] sizes, double v)
-  {
-    int maxN = MatrixOps.max (sizes);
-    double[] vals = new double[maxN];
-    Arrays.fill (vals, v);
+    /* Returns a diagonal matrix of the given dimensions.  It need not be square. */
+    public static Matrix diag(int[] sizes, double v) {
+        int maxN = MatrixOps.max(sizes);
+        double[] vals = new double[maxN];
+        Arrays.fill(vals, v);
 
     /* Compute indices of diagonals */
-    int[] idxs = new int [maxN];
-    for (int i = 0; i < idxs.length; i++) {
-      int[] oneIdx = new int [sizes.length];
-      Arrays.fill (oneIdx, i);
-      idxs[i] = Matrixn.singleIndex (sizes, oneIdx);
+        int[] idxs = new int[maxN];
+        for (int i = 0; i < idxs.length; i++) {
+            int[] oneIdx = new int[sizes.length];
+            Arrays.fill(oneIdx, i);
+            idxs[i] = Matrixn.singleIndex(sizes, oneIdx);
+        }
+
+        return new SparseMatrixn(sizes, idxs, vals);
     }
 
-    return new SparseMatrixn (sizes, idxs, vals);
-  }
 
+    /* Returns a diagonal matrix of the given dimensions.  It need not be square. */
+    public static Matrix constant(int[] sizes, double v) {
+        int singleSize = 1;
+        for (int i = 0; i < sizes.length; i++) {
+            singleSize *= sizes[i];
+        }
 
-  /* Returns a diagonal matrix of the given dimensions.  It need not be square. */
-  public static Matrix constant (int[] sizes, double v)
-  {
-    int singleSize = 1;
-    for (int i = 0; i < sizes.length; i++) {
-      singleSize *= sizes[i];
+        double[] vals = new double[singleSize];
+        Arrays.fill(vals, v);
+
+        return new SparseMatrixn(sizes, vals);
     }
-
-    double[] vals = new double [singleSize];
-    Arrays.fill (vals, v);
-
-    return new SparseMatrixn (sizes, vals);
-  }
 
 }

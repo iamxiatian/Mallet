@@ -6,66 +6,63 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.pipe.tsf.tests;
 
-import junit.framework.*;
-import java.util.regex.*;
-
 import cc.mallet.pipe.*;
-import cc.mallet.pipe.tsf.*;
-import cc.mallet.types.*;
+import cc.mallet.pipe.tsf.OffsetConjunctions;
+import cc.mallet.pipe.tsf.RegexMatches;
+import cc.mallet.pipe.tsf.TokenText;
+import cc.mallet.types.Instance;
+import cc.mallet.types.TokenSequence;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
+import java.util.regex.Pattern;
 
 
-public class TestOffsetConjunctions extends TestCase
-{
-	public TestOffsetConjunctions (String name) {
-		super (name);
-	}
-	
-	public void testOne ()
-	{
-		String input = "abcdefghijklmnopqrstuvwxyz";
-		Pipe p =
-			new SerialPipes (new Pipe[] {
-				new CharSequence2TokenSequence ("."),
-				//new PrintInput("1:"),
-				new TokenSequenceLowercase (),
-				//new PrintInput("2:"),
-				new TokenText (),
-				//new PrintInput("3:"),
-				new RegexMatches ("V", Pattern.compile("[aeiou]")),
-				//new PrintInput("4:"),
-				new OffsetConjunctions (new int[][] {{0,0}, {0,1}, {-1,0,1}, {-1}, {-2}}),
-				new PrintInput("5:"),
-			});
+public class TestOffsetConjunctions extends TestCase {
+    public TestOffsetConjunctions(String name) {
+        super(name);
+    }
 
-		Instance carrier = p.instanceFrom(new Instance (input, null, null, null));
-		TokenSequence ts = (TokenSequence) carrier.getData();
-		assertTrue (ts.size() == 26);
-		assertTrue (ts.get(0).getFeatureValue("a_&_b@1") == 1.0);
-		assertTrue (ts.get(0).getFeatureValue("V_&_a") == 1.0);
-		assertTrue (ts.get(2).getFeatureValue("b@-1_&_c_&_d@1") == 1.0);
-	}
+    public static Test suite() {
+        return new TestSuite(TestOffsetConjunctions.class);
+    }
 
+    public static void main(String[] args) {
+        junit.textui.TestRunner.run(suite());
+    }
 
-	public static Test suite ()
-	{
-		return new TestSuite (TestOffsetConjunctions.class);
-	}
+    public void testOne() {
+        String input = "abcdefghijklmnopqrstuvwxyz";
+        Pipe p =
+                new SerialPipes(new Pipe[]{
+                        new CharSequence2TokenSequence("."),
+                        //new PrintInput("1:"),
+                        new TokenSequenceLowercase(),
+                        //new PrintInput("2:"),
+                        new TokenText(),
+                        //new PrintInput("3:"),
+                        new RegexMatches("V", Pattern.compile("[aeiou]")),
+                        //new PrintInput("4:"),
+                        new OffsetConjunctions(new int[][]{{0, 0}, {0, 1}, {-1, 0, 1}, {-1}, {-2}}),
+                        new PrintInput("5:"),
+                });
 
-	protected void setUp ()
-	{
-	}
+        Instance carrier = p.instanceFrom(new Instance(input, null, null, null));
+        TokenSequence ts = (TokenSequence) carrier.getData();
+        assertTrue(ts.size() == 26);
+        assertTrue(ts.get(0).getFeatureValue("a_&_b@1") == 1.0);
+        assertTrue(ts.get(0).getFeatureValue("V_&_a") == 1.0);
+        assertTrue(ts.get(2).getFeatureValue("b@-1_&_c_&_d@1") == 1.0);
+    }
 
-	public static void main (String[] args)
-	{
-		junit.textui.TestRunner.run (suite());
-	}
-	
+    protected void setUp() {
+    }
+
 }

@@ -6,17 +6,16 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.classify;
 
-/** This interface is a tag indicating that the classifier attends to the
-		InstanceList.getInstanceWeight() weights when training. */
+/**
+ * This interface is a tag indicating that the classifier attends to the
+ * InstanceList.getInstanceWeight() weights when training.
+ */
 
-public interface Boostable
-{
+public interface Boostable {
 }

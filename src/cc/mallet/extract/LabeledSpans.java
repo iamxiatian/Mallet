@@ -7,12 +7,12 @@
 package cc.mallet.extract;
 
 
+import cc.mallet.types.ArrayListSequence;
+import cc.mallet.types.Label;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
-import cc.mallet.types.ArrayListSequence;
-import cc.mallet.types.Label;
 
 /**
  * Created: Oct 31, 2004
@@ -22,51 +22,42 @@ import cc.mallet.types.Label;
  */
 public class LabeledSpans extends ArrayListSequence {
 
-   private Object document;
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 1;
+    private Object document;
+
+    public LabeledSpans(Object document) {
+        this.document = document;
+    }
+
+    public Object getDocument() {
+        return document;
+    }
+
+    public Label getLabel(int i) {
+        LabeledSpan span = (LabeledSpan) get(i);
+        return span.getLabel();
+    }
+
+    // Serialization garbage
+
+    public Span getSpan(int i) {
+        return (Span) get(i);
+    }
+
+    public LabeledSpan getLabeledSpan(int i) {
+        return (LabeledSpan) get(i);
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeInt(CURRENT_SERIAL_VERSION);
+    }
 
 
-  public LabeledSpans (Object document)
-  {
-    this.document = document;
-  }
-
-  public Object getDocument ()
-  {
-    return document;
-  }
-
-  public Label getLabel (int i)
-  {
-    LabeledSpan span = (LabeledSpan) get (i);
-    return span.getLabel ();
-  }
-
-  public Span getSpan (int i)
-  {
-    return (Span) get (i);
-  }
-
-  public LabeledSpan getLabeledSpan (int i)
-  {
-    return (LabeledSpan) get (i);
-  }
-
-  // Serialization garbage
-
-  private static final long serialVersionUID = 1;
-  private static final int CURRENT_SERIAL_VERSION = 1;
-
-  private void writeObject (ObjectOutputStream out) throws IOException
-  {
-    out.defaultWriteObject ();
-    out.writeInt (CURRENT_SERIAL_VERSION);
-  }
-
-
-  private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException
-  {
-    in.defaultReadObject ();
-    int version = in.readInt ();
-  }
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        int version = in.readInt();
+    }
 
 }

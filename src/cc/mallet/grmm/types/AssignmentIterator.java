@@ -10,22 +10,23 @@ import java.util.Iterator;
 
 /**
  * Iterates over the assignments to a set of variables.
- *  This is never instantiated by user code; instead, use
- *  one of the many assignmentIterator() methods.
- *
- *   DOCTODO: Add note about difference between using this class and iterating
- *    over assignments.
- *   DOCTODO: Explain why advance() is useful instead of next.
- *
+ * This is never instantiated by user code; instead, use
+ * one of the many assignmentIterator() methods.
+ * <p>
+ * DOCTODO: Add note about difference between using this class and iterating
+ * over assignments.
+ * DOCTODO: Explain why advance() is useful instead of next.
+ * <p>
  * Created: Sun Nov  9 21:04:03 2003
  *
  * @author <a href="mailto:casutton@cs.umass.edu">Charles Sutton</a>
  * @version $Id: AssignmentIterator.java,v 1.1 2007/10/22 21:37:44 mccallum Exp $
- */public interface AssignmentIterator extends Iterator {
+ */
+public interface AssignmentIterator extends Iterator {
 
-  void advance();
+    void advance();
 
-  int indexOfCurrentAssn ();
+    int indexOfCurrentAssn();
 
-  Assignment assignment ();
+    Assignment assignment();
 }

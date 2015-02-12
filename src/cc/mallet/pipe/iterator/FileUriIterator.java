@@ -6,51 +6,40 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.pipe.iterator;
 
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.io.*;
-import java.net.URI;
-import java.util.regex.*;
-
-import cc.mallet.pipe.Pipe;
 import cc.mallet.types.Instance;
 
-public class FileUriIterator extends FileIterator
-{
-	public FileUriIterator (File[] directories, FileFilter filter, Pattern targetPattern)
-	{
-		super (directories, filter, targetPattern);
-	}
+import java.io.File;
+import java.io.FileFilter;
+import java.util.regex.Pattern;
 
-	public FileUriIterator (File directory, FileFilter filter, Pattern targetPattern)
-	{
-		super (directory, filter, targetPattern);
-	}
-	
-	public FileUriIterator (File[] directories, Pattern targetPattern)
-	{
-		super (directories, null, targetPattern);
-	}
+public class FileUriIterator extends FileIterator {
+    public FileUriIterator(File[] directories, FileFilter filter, Pattern targetPattern) {
+        super(directories, filter, targetPattern);
+    }
 
-	public FileUriIterator (File directory, Pattern targetPattern)
-	{
-		super (directory, null, targetPattern);
-	}
+    public FileUriIterator(File directory, FileFilter filter, Pattern targetPattern) {
+        super(directory, filter, targetPattern);
+    }
 
-	public Instance next ()
-	{
-		Instance carrier = super.next();
-		carrier.setData(((File)carrier.getData()).toURI());
-		return carrier;
-	}
-	
+    public FileUriIterator(File[] directories, Pattern targetPattern) {
+        super(directories, null, targetPattern);
+    }
+
+    public FileUriIterator(File directory, Pattern targetPattern) {
+        super(directory, null, targetPattern);
+    }
+
+    public Instance next() {
+        Instance carrier = super.next();
+        carrier.setData(((File) carrier.getData()).toURI());
+        return carrier;
+    }
+
 }
 

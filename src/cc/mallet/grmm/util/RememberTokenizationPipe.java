@@ -18,10 +18,9 @@ import cc.mallet.types.Instance;
  */
 public class RememberTokenizationPipe extends Pipe {
 
-  public Instance pipe (Instance carrier)
-  {
-    Tokenization tok = (Tokenization) carrier.getData ();
-    carrier.setProperty ("TOKENIZATION", tok);
-    return carrier;
-  }
+    public Instance pipe(Instance carrier) {
+        Tokenization tok = (Tokenization) carrier.getData();
+        carrier.setProperty("TOKENIZATION", tok);
+        return carrier;
+    }
 }

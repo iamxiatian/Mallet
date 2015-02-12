@@ -6,57 +6,51 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.fst.tests;
 
-import junit.framework.*;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
-public class TestSumNegLogProb2 extends TestCase
-{
-	public TestSumNegLogProb2 (String name)
-	{
-		super (name);
-	}
+public class TestSumNegLogProb2 extends TestCase {
+    public TestSumNegLogProb2(String name) {
+        super(name);
+    }
 
-	private double sumNegLogProb (double a, double b) {
-		return - Math.log (Math.exp(-a) + Math.exp(-b));
-	}
+    public static Test suite() {
+        return new TestSuite(TestSumNegLogProb2.class);
+    }
 
-	public void testSum (double a, double b)
-	{
-		double al = - Math.log (a);
-		double bl = - Math.log (b);
-		double abl = sumNegLogProb (al, bl);
-		double ab = Math.exp (-abl);
-		System.out.println (" " + a +"  +  "+ b +"  =  "+ab);
-		System.out.println (">" + al +"  +  "+ bl +"  =  "+abl);
-		assertTrue (Math.abs (ab - (a+b)) < 0.001);
-	}
+    public static void main(String[] args) {
+        junit.textui.TestRunner.run(suite());
+    }
 
-	public void testTwo ()
-	{
-		testSum (.5, .5);
-		testSum (.9, .1);
-		testSum (.99, .01);
-		testSum (.99999, .00001);
-		testSum (.00001, 0.00001);
-		testSum (.00000001, 0.00001);
-		testSum (.0000000000001, 0.00001);
-	}
-	
-	public static Test suite ()
-	{
-		return new TestSuite (TestSumNegLogProb2.class);
-	}
+    private double sumNegLogProb(double a, double b) {
+        return -Math.log(Math.exp(-a) + Math.exp(-b));
+    }
 
-	public static void main (String[] args)
-	{
-		junit.textui.TestRunner.run (suite());
-	}
-	
+    public void testSum(double a, double b) {
+        double al = -Math.log(a);
+        double bl = -Math.log(b);
+        double abl = sumNegLogProb(al, bl);
+        double ab = Math.exp(-abl);
+        System.out.println(" " + a + "  +  " + b + "  =  " + ab);
+        System.out.println(">" + al + "  +  " + bl + "  =  " + abl);
+        assertTrue(Math.abs(ab - (a + b)) < 0.001);
+    }
+
+    public void testTwo() {
+        testSum(.5, .5);
+        testSum(.9, .1);
+        testSum(.99, .01);
+        testSum(.99999, .00001);
+        testSum(.00001, 0.00001);
+        testSum(.00000001, 0.00001);
+        testSum(.0000000000001, 0.00001);
+    }
+
 }

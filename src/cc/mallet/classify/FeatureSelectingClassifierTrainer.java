@@ -6,45 +6,36 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-
-
 package cc.mallet.classify;
 
-import java.io.*;
-import java.util.*;
-
-import cc.mallet.classify.Classifier;
 import cc.mallet.types.FeatureSelector;
-import cc.mallet.types.Instance;
 import cc.mallet.types.InstanceList;
-import cc.mallet.util.BshInterpreter;
-import cc.mallet.util.CommandOption;
+
 /**
  * Adaptor for adding feature selection to a classifier trainer.
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+ *
+ * @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
-public class FeatureSelectingClassifierTrainer extends ClassifierTrainer
-{
-	ClassifierTrainer underlyingTrainer;
-	FeatureSelector featureSelector;
-	Classifier classifier;
-	public Classifier getClassifier () { return classifier; }
+public class FeatureSelectingClassifierTrainer extends ClassifierTrainer {
+    ClassifierTrainer underlyingTrainer;
+    FeatureSelector featureSelector;
+    Classifier classifier;
 
-	public FeatureSelectingClassifierTrainer (ClassifierTrainer underlyingTrainer,
-																						FeatureSelector featureSelector)
-	{
-		this.underlyingTrainer = underlyingTrainer;
-		this.featureSelector = featureSelector;
-	}
+    public FeatureSelectingClassifierTrainer(ClassifierTrainer underlyingTrainer,
+                                             FeatureSelector featureSelector) {
+        this.underlyingTrainer = underlyingTrainer;
+        this.featureSelector = featureSelector;
+    }
 
-	public Classifier train (InstanceList trainingSet)
-	{
-		featureSelector.selectFeaturesFor (trainingSet);
-		// TODO What about also selecting features for the validation set?
-		this.classifier = underlyingTrainer.train (trainingSet);
-		return classifier;
-	}
+    public Classifier getClassifier() {
+        return classifier;
+    }
+
+    public Classifier train(InstanceList trainingSet) {
+        featureSelector.selectFeaturesFor(trainingSet);
+        // TODO What about also selecting features for the validation set?
+        this.classifier = underlyingTrainer.train(trainingSet);
+        return classifier;
+    }
 
 }

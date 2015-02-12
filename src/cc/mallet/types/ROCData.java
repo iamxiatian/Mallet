@@ -6,54 +6,46 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
 package cc.mallet.types;
+
+import cc.mallet.classify.Classification;
+import cc.mallet.classify.Classifier;
+import cc.mallet.classify.Trial;
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
 
-import cc.mallet.classify.Classification;
-import cc.mallet.classify.Classifier;
-import cc.mallet.classify.Trial;
-import cc.mallet.types.Alphabet;
-import cc.mallet.types.AlphabetCarrying;
-import cc.mallet.types.InstanceList;
-import cc.mallet.types.Label;
-import cc.mallet.types.LabelAlphabet;
-import cc.mallet.types.LabelVector;
-
 /**
  * Tracks ROC data for instances in {@link Trial} results.
- * 
+ *
+ * @author Michael Bond <a href="mailto:mikejbond@gmail.com">mikejbond@gmail.com</a>
  * @see Trial
  * @see InstanceList
  * @see Classifier
  * @see Classification
- * 
- * @author Michael Bond <a href="mailto:mikejbond@gmail.com">mikejbond@gmail.com</a>
  */
 public class ROCData implements AlphabetCarrying, Serializable {
 
-    private static final long serialVersionUID  = -2060194953037720640L;
-    public static final int TRUE_POSITIVE       = 0;
-    public static final int FALSE_POSITIVE      = 1;
-    public static final int FALSE_NEGATIVE      = 2;
-    public static final int TRUE_NEGATIVE       = 3;
-    
+    public static final int TRUE_POSITIVE = 0;
+    public static final int FALSE_POSITIVE = 1;
+    public static final int FALSE_NEGATIVE = 2;
+    public static final int TRUE_NEGATIVE = 3;
+    private static final long serialVersionUID = -2060194953037720640L;
     private final LabelAlphabet labelAlphabet;
 
-    /** Matrix of class, threshold, [tp, fp, fn, tn] */
+    /**
+     * Matrix of class, threshold, [tp, fp, fn, tn]
+     */
     private final int[][][] counts;
     private final double[] thresholds;
-    
+
     /**
      * Constructs a new object
-     * 
-     * @param thresholds        Array of thresholds to track counts for
-     * @param labelAlphabet     Label alphabet for instances in {@link Trial}
+     *
+     * @param thresholds    Array of thresholds to track counts for
+     * @param labelAlphabet Label alphabet for instances in {@link Trial}
      */
     public ROCData(double[] thresholds, final LabelAlphabet labelAlphabet) {
         // ensure that thresholds are sorted
@@ -62,27 +54,27 @@ public class ROCData implements AlphabetCarrying, Serializable {
         this.labelAlphabet = labelAlphabet;
         this.thresholds = thresholds;
     }
-    
+
     /**
      * Adds classification results to the ROC data
-     * 
+     *
      * @param trial Trial results to add to ROC data
      */
     public void add(Classification classification) {
         int correctIndex = classification.getInstance().getLabeling().getBestIndex();
         LabelVector lv = classification.getLabelVector();
         double[] values = lv.getValues();
-        
+
         if (!Alphabet.alphabetsMatch(this, lv)) {
-            throw new IllegalArgumentException ("Alphabets do not match");
+            throw new IllegalArgumentException("Alphabets do not match");
         }
-        
+
         int numLabels = this.labelAlphabet.size();
         for (int label = 0; label < numLabels; label++) {
             double labelValue = values[label];
             int[][] thresholdCounts = this.counts[label];
             int threshold = 0;
-            
+
             // add the trial to all the thresholds it would be positive for
             for (; threshold < this.thresholds.length && labelValue >= this.thresholds[threshold]; threshold++) {
                 if (correctIndex == label) {
@@ -91,7 +83,7 @@ public class ROCData implements AlphabetCarrying, Serializable {
                     thresholdCounts[threshold][FALSE_POSITIVE]++;
                 }
             }
-            
+
             // add the trial to the thresholds it would be negative for
             for (; threshold < this.thresholds.length; threshold++) {
                 if (correctIndex == label) {
@@ -105,7 +97,7 @@ public class ROCData implements AlphabetCarrying, Serializable {
 
     /**
      * Adds trial results to the ROC data
-     * 
+     *
      * @param trial Trial results to add to ROC data
      */
     public void add(Trial trial) {
@@ -121,11 +113,11 @@ public class ROCData implements AlphabetCarrying, Serializable {
      */
     public void add(ROCData rocData) {
         if (!Alphabet.alphabetsMatch(this, rocData)) {
-            throw new IllegalArgumentException ("Alphabets do not match");
+            throw new IllegalArgumentException("Alphabets do not match");
         }
 
         if (!Arrays.equals(this.thresholds, rocData.thresholds)) {
-            throw new IllegalArgumentException ("Thresholds do not match");
+            throw new IllegalArgumentException("Thresholds do not match");
         }
 
         int countsLength = this.counts.length;
@@ -151,36 +143,36 @@ public class ROCData implements AlphabetCarrying, Serializable {
 
     //@Override
     public Alphabet[] getAlphabets() {
-        return new Alphabet[] { this.labelAlphabet };
+        return new Alphabet[]{this.labelAlphabet};
     }
-    
+
     /**
      * Gets the raw counts for a specified label.
-     * 
-     * @param label     Label to get counts for
+     *
+     * @param label Label to get counts for
+     * @return Array of raw counts for specified label
      * @see #TRUE_POSITIVE
      * @see #FALSE_POSITIVE
      * @see #FALSE_NEGATIVE
      * @see #TRUE_NEGATIVE
-     * @return Array of raw counts for specified label
      */
     public int[][] getCounts(Label label) {
         return this.counts[label.getIndex()];
     }
-    
+
     /**
      * Gets the raw counts for a specified label and threshold.
-     * 
+     * <p>
      * If data was not collected for the exact threshold specified, then results
      * for the highest threshold <= the specified threshold will be returned.
-     * 
+     *
      * @param label     Label to get counts for
      * @param threshold Threshold to get counts for
+     * @return Array of raw counts for specified label and threshold
      * @see #TRUE_POSITIVE
      * @see #FALSE_POSITIVE
      * @see #FALSE_NEGATIVE
      * @see #TRUE_NEGATIVE
-     * @return Array of raw counts for specified label and threshold
      */
     public int[] getCounts(Label label, double threshold) {
         int index = Arrays.binarySearch(this.thresholds, threshold);
@@ -196,14 +188,14 @@ public class ROCData implements AlphabetCarrying, Serializable {
     public LabelAlphabet getLabelAlphabet() {
         return this.labelAlphabet;
     }
-    
+
     /**
      * Gets the precision for a specified label and threshold.
-     * 
+     * <p>
      * If data was not collected for the exact threshold specified, then results
      * will for the highest threshold <= the specified threshold will be
      * returned.
-     * 
+     *
      * @param label     Label to get precision for
      * @param threshold Threshold to get precision for
      * @return Precision for specified label and threshold
@@ -212,23 +204,23 @@ public class ROCData implements AlphabetCarrying, Serializable {
         int[] counts = getCounts(label, threshold);
         return (double) counts[TRUE_POSITIVE] / (double) (counts[TRUE_POSITIVE] + counts[FALSE_POSITIVE]);
     }
-    
+
     /**
      * Gets the precision for a specified label and score. This differs from
      * {@link ROCData.getPrecision(Label, double)} in that it is the precision
      * for only scores falling in the one score value, not for all scores
      * above the threshold.
-     * 
+     * <p>
      * If data was not collected for the exact threshold specified, then results
      * will for the highest threshold <= the specified threshold will be
      * returned.
-     * 
+     *
      * @param label     Label to get precision for
      * @param threshold Threshold to get precision for
      * @return Precision for specified label and score
      */
     public double getPrecisionForScore(Label label, double score) {
-        final int[][] buckets = this.counts[label.getIndex()]; 
+        final int[][] buckets = this.counts[label.getIndex()];
 
         int index = Arrays.binarySearch(this.thresholds, score);
         if (index < 0) {
@@ -247,11 +239,11 @@ public class ROCData implements AlphabetCarrying, Serializable {
 
         return (double) tp / (double) (tp + fp);
     }
-    
+
     /**
      * Gets the estimated percentage of training events that exceed the
      * threshold.
-     * 
+     *
      * @param label     Label to get precision for
      * @param threshold Threshold to get precision for
      * @return Estimated percentage of events exceeding threshold
@@ -261,14 +253,14 @@ public class ROCData implements AlphabetCarrying, Serializable {
         final int positive = counts[TRUE_POSITIVE] + counts[FALSE_POSITIVE];
         return ((double) positive / (double) (positive + counts[FALSE_NEGATIVE] + counts[TRUE_NEGATIVE])) * 100.0;
     }
-    
+
     /**
      * Gets the recall rate for a specified label and threshold.
-     * 
+     * <p>
      * If data was not collected for the exact threshold specified, then results
      * will for the highest threshold <= the specified threshold will be
      * returned.
-     * 
+     *
      * @param label     Label to get recall for
      * @param threshold Threshold to get recall for
      * @return Recall rate for specified label and threshold
@@ -286,13 +278,13 @@ public class ROCData implements AlphabetCarrying, Serializable {
     public double[] getThresholds() {
         return this.thresholds;
     }
-    
+
     /**
      * Sets the raw counts for a specified label and threshold.
-     * 
+     * <p>
      * If data is not collected for the exact threshold specified, then counts
      * for the highest threshold <= the specified threshold will be set.
-     * 
+     *
      * @param label     Label to get counts for
      * @param threshold Threshold to get counts for
      * @param newCounts New count values for the label and threshold
@@ -306,30 +298,30 @@ public class ROCData implements AlphabetCarrying, Serializable {
         if (index < 0) {
             index = (-index) - 2;
         }
-        
+
         final int[] oldCounts = this.counts[label.getIndex()][index];
         if (newCounts.length != oldCounts.length) {
-            throw new IllegalArgumentException ("Array of counts must contain " + oldCounts.length + " elements.");
+            throw new IllegalArgumentException("Array of counts must contain " + oldCounts.length + " elements.");
         }
 
         for (int i = 0; i < oldCounts.length; i++) {
             oldCounts[i] = newCounts[i];
         }
     }
-    
+
     //@Override
     public String toString() {
         final StringBuilder buf = new StringBuilder();
         final NumberFormat format = new DecimalFormat("0.####");
-        
+
         for (int i = 0; i < this.labelAlphabet.size(); i++) {
             int[][] labelData = this.counts[i];
-            
+
             buf.append("ROC data for ");
             buf.append(this.labelAlphabet.lookupObject(i).toString());
             buf.append('\n');
             buf.append("THR\tTP\tFP\tFN\tTN\tPrecis\tRecall\n");
-            
+
             // add one row for each threshold
             for (int t = 0; t < this.thresholds.length; t++) {
                 buf.append(this.thresholds[t]);
@@ -343,22 +335,22 @@ public class ROCData implements AlphabetCarrying, Serializable {
                 if (sum != 0) {
                     precision = tp / sum;
                 }
-                
+
                 sum = tp + labelData[t][FALSE_NEGATIVE];
                 double recall = 0.0;
                 if (sum != 0) {
                     recall = tp / sum;
                 }
-                
+
                 buf.append('\t').append(format.format(precision));
                 buf.append('\t').append(format.format(recall));
                 buf.append('\n');
             }
-            
+
             buf.append('\n');
         }
-        
+
         return buf.toString();
     }
-    
+
 }

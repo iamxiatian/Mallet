@@ -6,65 +6,60 @@
 
 package cc.mallet.classify;
 
-import java.util.HashMap;
-import java.util.TreeMap;
-
-import cc.mallet.classify.Classification;
-import cc.mallet.classify.Classifier;
 import cc.mallet.pipe.Pipe;
 import cc.mallet.types.Instance;
 import cc.mallet.types.Label;
+
+import java.util.HashMap;
+import java.util.TreeMap;
 
 
 /**
  * A Classifier that will return the most frequent class label based on a training set.
  * The Classifier needs to be trained using the MostFrequentClassAssignmentTrainer.
- * 
- * @see MostFrequentClassAssignmentTrainer
- * 
+ *
  * @author Martin Wunderlich <a href="mailto:martin@wunderlich.com">martin@wunderlich.com</a>
-*/
+ * @see MostFrequentClassAssignmentTrainer
+ */
 public class MostFrequentClassifier extends Classifier {
 
-	TreeMap<String, Integer> sortedLabelMap = new TreeMap<String, Integer>();
-	HashMap<String, Label> labels = new HashMap<String, Label>();
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -2685212760735255652L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = -2685212760735255652L;
+    TreeMap<String, Integer> sortedLabelMap = new TreeMap<String, Integer>();
+    HashMap<String, Label> labels = new HashMap<String, Label>();
 
-	public MostFrequentClassifier(Pipe instancePipe) {
-		this.instancePipe = instancePipe;
-	}
+    public MostFrequentClassifier(Pipe instancePipe) {
+        this.instancePipe = instancePipe;
+    }
 
     /**
      * Classify an instance using the most frequent class label.
-     * 
+     *
      * @param Instance to be classified. Data field must be a FeatureVector.
      * @return Classification containing the labeling of the instance.
      */
-	@Override
-	public Classification classify(Instance instance) {
-		String mostFrequentLabelStr = this.sortedLabelMap.firstEntry().getKey();
-		Label mostFrequentLabel = this.labels.get(mostFrequentLabelStr);
-		Classification mostFrequentClassification = new Classification(instance, this, mostFrequentLabel);
-		
-		return mostFrequentClassification;
-	}
+    @Override
+    public Classification classify(Instance instance) {
+        String mostFrequentLabelStr = this.sortedLabelMap.firstEntry().getKey();
+        Label mostFrequentLabel = this.labels.get(mostFrequentLabelStr);
+        Classification mostFrequentClassification = new Classification(instance, this, mostFrequentLabel);
 
-	public void addTargetLabel(Label label) {
-		String labelEntry = (String) label.getEntry();
-		
-		if(! this.labels.containsKey(labelEntry) ) {
-			this.sortedLabelMap.put(labelEntry, new Integer(1));
-			this.labels.put(labelEntry, label);
-		}
-		else {
-			Integer oldCount = this.sortedLabelMap.get(labelEntry);
-			Integer newCount = oldCount + 1;
-			this.sortedLabelMap.put(labelEntry, newCount);
-			this.labels.put(labelEntry, label);
-		}
-	}
+        return mostFrequentClassification;
+    }
+
+    public void addTargetLabel(Label label) {
+        String labelEntry = (String) label.getEntry();
+
+        if (!this.labels.containsKey(labelEntry)) {
+            this.sortedLabelMap.put(labelEntry, new Integer(1));
+            this.labels.put(labelEntry, label);
+        } else {
+            Integer oldCount = this.sortedLabelMap.get(labelEntry);
+            Integer newCount = oldCount + 1;
+            this.sortedLabelMap.put(labelEntry, newCount);
+            this.labels.put(labelEntry, label);
+        }
+    }
 }

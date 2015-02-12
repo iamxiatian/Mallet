@@ -6,56 +6,56 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-
 package cc.mallet.pipe;
 
-import java.io.*;
+import cc.mallet.types.Alphabet;
+import cc.mallet.types.Instance;
 
-import cc.mallet.types.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
 /**
  * A pipe that does nothing to the instance fields but which has side effects on the dictionary.
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+ *
+ * @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
-public class Noop extends Pipe implements Serializable
-{
-	public Noop ()
-	{
-	}
+public class Noop extends Pipe implements Serializable {
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 0;
 
-	/** Pass through input without change, but force the creation of
-			Alphabet's, so it can be shared by future DictionariedPipe's.
+    public Noop() {
+    }
 
-			You might want to use this before ParallelPipes where the previous
-			pipes do not need dictionaries, but later steps in each parallel
-			path do, and they all must share the same dictionary.
-	*/
+    // Serialization
 
-	public Noop (Alphabet dataDict,
-							 Alphabet targetDict)
-	{
-		super (dataDict, targetDict);
-	}
-	
-	public Instance pipe (Instance carrier)
-	{
-		return carrier;
-	}
+    /**
+     * Pass through input without change, but force the creation of
+     * Alphabet's, so it can be shared by future DictionariedPipe's.
+     * <p>
+     * You might want to use this before ParallelPipes where the previous
+     * pipes do not need dictionaries, but later steps in each parallel
+     * path do, and they all must share the same dictionary.
+     */
 
-	// Serialization 
-	
-	private static final long serialVersionUID = 1;
-	private static final int CURRENT_SERIAL_VERSION = 0;
-	
-	private void writeObject (ObjectOutputStream out) throws IOException {
-		out.writeInt (CURRENT_SERIAL_VERSION);
-	}
-	
-	private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
-		int version = in.readInt ();
-	}
+    public Noop(Alphabet dataDict,
+                Alphabet targetDict) {
+        super(dataDict, targetDict);
+    }
 
-	
+    public Instance pipe(Instance carrier) {
+        return carrier;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(CURRENT_SERIAL_VERSION);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        int version = in.readInt();
+    }
+
+
 }

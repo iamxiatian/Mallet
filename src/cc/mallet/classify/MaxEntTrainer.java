@@ -7,312 +7,290 @@
 
 package cc.mallet.classify;
 
-import java.util.logging.*;
-import java.util.*;
-import java.io.*;
-
-import cc.mallet.classify.Classifier;
-import cc.mallet.optimize.ConjugateGradient;
-import cc.mallet.optimize.InvalidOptimizableException;
-import cc.mallet.optimize.LimitedMemoryBFGS;
-import cc.mallet.optimize.Optimizable;
-import cc.mallet.optimize.OptimizationException;
-import cc.mallet.optimize.Optimizer;
-import cc.mallet.optimize.OrthantWiseLimitedMemoryBFGS;
-import cc.mallet.optimize.tests.*;
-import cc.mallet.pipe.Pipe;
+import cc.mallet.optimize.*;
 import cc.mallet.types.Alphabet;
-import cc.mallet.types.ExpGain;
-import cc.mallet.types.FeatureInducer;
-import cc.mallet.types.FeatureSelection;
-import cc.mallet.types.FeatureVector;
-import cc.mallet.types.GradientGain;
-import cc.mallet.types.InfoGain;
-import cc.mallet.types.Instance;
 import cc.mallet.types.InstanceList;
-import cc.mallet.types.Label;
-import cc.mallet.types.LabelAlphabet;
-import cc.mallet.types.LabelVector;
-import cc.mallet.types.Labeling;
-import cc.mallet.types.MatrixOps;
-import cc.mallet.types.RankedFeatureVector;
-import cc.mallet.types.Vector;
-import cc.mallet.util.CommandOption;
 import cc.mallet.util.MalletLogger;
 import cc.mallet.util.MalletProgressMessageLogger;
-import cc.mallet.util.Maths;
+
+import java.io.Serializable;
+import java.util.logging.Logger;
 
 //Does not currently handle instances that are labeled with distributions
 //instead of a single label.
+
 /**
  * The trainer for a Maximum Entropy classifier.
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+ *
+ * @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 public class MaxEntTrainer extends ClassifierTrainer<MaxEnt>
-	implements ClassifierTrainer.ByOptimization<MaxEnt>, Boostable, Serializable {
+        implements ClassifierTrainer.ByOptimization<MaxEnt>, Boostable, Serializable {
 
-	private static Logger logger = MalletLogger.getLogger(MaxEntTrainer.class.getName());
-	private static Logger progressLogger = MalletProgressMessageLogger.getLogger(MaxEntTrainer.class.getName()+"-pl");
+    // xxx Why does TestMaximizable fail when this variance is very small?
+    static final double DEFAULT_GAUSSIAN_PRIOR_VARIANCE = 1;
+    static final double DEFAULT_L1_WEIGHT = 0.0;
+    static final Class DEFAULT_MAXIMIZER_CLASS = LimitedMemoryBFGS.class;
 
-	int numIterations = Integer.MAX_VALUE;
+    //public static final String EXP_GAIN = "exp";
+    //public static final String GRADIENT_GAIN = "grad";
+    //public static final String INFORMATION_GAIN = "info";
+    private static Logger logger = MalletLogger.getLogger(MaxEntTrainer.class.getName());
+    private static Logger progressLogger = MalletProgressMessageLogger.getLogger(MaxEntTrainer.class.getName() + "-pl");
+    int numIterations = Integer.MAX_VALUE;
+    double gaussianPriorVariance = DEFAULT_GAUSSIAN_PRIOR_VARIANCE;
+    double l1Weight = DEFAULT_L1_WEIGHT;
 
-	//public static final String EXP_GAIN = "exp";
-	//public static final String GRADIENT_GAIN = "grad";
-	//public static final String INFORMATION_GAIN = "info";
+    Class maximizerClass = DEFAULT_MAXIMIZER_CLASS;
 
-	// xxx Why does TestMaximizable fail when this variance is very small?
-	static final double DEFAULT_GAUSSIAN_PRIOR_VARIANCE = 1;
-	static final double DEFAULT_L1_WEIGHT = 0.0;
-	static final Class DEFAULT_MAXIMIZER_CLASS = LimitedMemoryBFGS.class;
+    InstanceList trainingSet = null;
+    MaxEnt initialClassifier;
 
-	double gaussianPriorVariance = DEFAULT_GAUSSIAN_PRIOR_VARIANCE;
-	double l1Weight = DEFAULT_L1_WEIGHT;
+    MaxEntOptimizableByLabelLikelihood optimizable = null;
+    Optimizer optimizer = null;
 
-	Class maximizerClass = DEFAULT_MAXIMIZER_CLASS;
+    //
+    // CONSTRUCTORS
+    //
 
-	InstanceList trainingSet = null;
-	MaxEnt initialClassifier;
+    public MaxEntTrainer() {
+    }
 
-	MaxEntOptimizableByLabelLikelihood optimizable = null;
-	Optimizer optimizer = null;
+    /**
+     * Construct a MaxEnt trainer using a trained classifier as
+     * initial values.
+     */
+    public MaxEntTrainer(MaxEnt theClassifierToTrain) {
+        this.initialClassifier = theClassifierToTrain;
+    }
 
-	// 
-	// CONSTRUCTORS
-	//
+    /**
+     * Constructs a trainer with a parameter to avoid overtraining.  1.0 is
+     * the default value.
+     */
+    public MaxEntTrainer(double gaussianPriorVariance) {
+        this.gaussianPriorVariance = gaussianPriorVariance;
+    }
 
-	public MaxEntTrainer () {}
+    //
+    //  CLASSIFIER OBJECT: stores parameters
+    //
 
-	/** Construct a MaxEnt trainer using a trained classifier as
-	 *   initial values.
-	 */ 
-	public MaxEntTrainer (MaxEnt theClassifierToTrain) {
-		this.initialClassifier = theClassifierToTrain;
-	}
+    public MaxEnt getClassifier() {
+        if (optimizable != null)
+            return optimizable.getClassifier();
+        return initialClassifier;
+    }
 
-	/** Constructs a trainer with a parameter to avoid overtraining.  1.0 is
-	 * the default value. */
-	public MaxEntTrainer (double gaussianPriorVariance) {
-		this.gaussianPriorVariance = gaussianPriorVariance;
-	}
+    /**
+     * Initialize parameters using the provided classifier.
+     */
+    public void setClassifier(MaxEnt theClassifierToTrain) {
+        // Is this necessary?  What is the caller is about to set the training set to something different? -akm
+        assert (trainingSet == null || Alphabet.alphabetsMatch(theClassifierToTrain, trainingSet));
+        if (this.initialClassifier != theClassifierToTrain) {
+            this.initialClassifier = theClassifierToTrain;
+            optimizable = null;
+            optimizer = null;
+        }
+    }
 
-	//
-	//  CLASSIFIER OBJECT: stores parameters
-	// 
+    //
+    //  OPTIMIZABLE OBJECT: implements value and gradient functions
+    //
 
-	public MaxEnt getClassifier () {
-		if (optimizable != null)
-			return optimizable.getClassifier();
-		return initialClassifier;
-	}
+    public Optimizable getOptimizable() {
+        return optimizable;
+    }
 
-	/**
-	 *  Initialize parameters using the provided classifier. 
-	 */
-	public void setClassifier (MaxEnt theClassifierToTrain) {
-		// Is this necessary?  What is the caller is about to set the training set to something different? -akm
-		assert (trainingSet == null || Alphabet.alphabetsMatch(theClassifierToTrain, trainingSet));
-		if (this.initialClassifier != theClassifierToTrain) {
-			this.initialClassifier = theClassifierToTrain;
-			optimizable = null;
-			optimizer = null;
-		}
-	}
+    public MaxEntOptimizableByLabelLikelihood getOptimizable(InstanceList trainingSet) {
+        return getOptimizable(trainingSet, getClassifier());
+    }
 
-	//
-	//  OPTIMIZABLE OBJECT: implements value and gradient functions
-	//
+    public MaxEntOptimizableByLabelLikelihood getOptimizable(InstanceList trainingSet, MaxEnt initialClassifier) {
 
-	public Optimizable getOptimizable () {
-		return optimizable;
-	}
+        if (trainingSet != this.trainingSet || this.initialClassifier != initialClassifier) {
 
-	public MaxEntOptimizableByLabelLikelihood getOptimizable (InstanceList trainingSet) {
-		return getOptimizable(trainingSet, getClassifier());
-	}
+            this.trainingSet = trainingSet;
+            this.initialClassifier = initialClassifier;
 
-	public MaxEntOptimizableByLabelLikelihood getOptimizable (InstanceList trainingSet, MaxEnt initialClassifier) {
+            if (optimizable == null || optimizable.trainingList != trainingSet) {
+                optimizable = new MaxEntOptimizableByLabelLikelihood(trainingSet, initialClassifier);
 
-		if (trainingSet != this.trainingSet || this.initialClassifier != initialClassifier) {
+                if (l1Weight == 0.0) {
+                    optimizable.setGaussianPriorVariance(gaussianPriorVariance);
+                } else {
+                    // the prior term for L1-regularized classifiers
+                    //  is implemented as part of the optimizer,
+                    //  so don't include a prior calculation in the value and
+                    //  gradient functions.
+                    optimizable.useNoPrior();
+                }
 
-			this.trainingSet = trainingSet;
-			this.initialClassifier = initialClassifier;
+                optimizer = null;
+            }
+        }
 
-			if (optimizable == null || optimizable.trainingList != trainingSet) {
-				optimizable = new MaxEntOptimizableByLabelLikelihood (trainingSet, initialClassifier);
+        return optimizable;
+    }
 
-				if (l1Weight == 0.0) {
-					optimizable.setGaussianPriorVariance(gaussianPriorVariance);
-				}
-				else {
-					// the prior term for L1-regularized classifiers 
-					//  is implemented as part of the optimizer, 
-					//  so don't include a prior calculation in the value and 
-					//  gradient functions.
-					optimizable.useNoPrior();
-				}
+    //
+    //  OPTIMIZER OBJECT: maximizes value function
+    //
 
-				optimizer = null;
-			}
-		}
+    public Optimizer getOptimizer() {
+        if (optimizer == null && optimizable != null) {
+            optimizer = new ConjugateGradient(optimizable);
+        }
 
-		return optimizable;
-	}
+        return optimizer;
+    }
 
-	//
-	//  OPTIMIZER OBJECT: maximizes value function
-	//
+    /**
+     * This method is called by the train method.
+     * This is the main entry point for the optimizable and optimizer
+     * compontents.
+     */
+    public Optimizer getOptimizer(InstanceList trainingSet) {
 
-	public Optimizer getOptimizer () {
-		if (optimizer == null && optimizable != null) {
-			optimizer = new ConjugateGradient(optimizable);
-		}
+        // If the data is not set, or has changed,
+        // initialize the optimizable object and
+        // replace the optimizer.
+        if (trainingSet != this.trainingSet ||
+                optimizable == null) {
+            getOptimizable(trainingSet);
+            optimizer = null;
+        }
 
-		return optimizer;
-	}
+        // Build a new optimizer
+        if (optimizer == null) {
+            // If l1Weight is 0, this devolves to
+            //  standard L-BFGS, but the implementation
+            //  may be faster.
+            optimizer = new LimitedMemoryBFGS(optimizable);
+            //OrthantWiseLimitedMemoryBFGS(optimizable, l1Weight);
+        }
+        return optimizer;
+    }
 
-	/** This method is called by the train method. 
-	 *   This is the main entry point for the optimizable and optimizer
-	 *   compontents.
-	 */
-	public Optimizer getOptimizer (InstanceList trainingSet) {
+    /**
+     * Specifies the maximum number of iterations to run during a single call
+     * to <code>train</code> or <code>trainWithFeatureInduction</code>.  Not
+     * currently functional.
+     *
+     * @return This trainer
+     */
+    // XXX Since we maximize before using numIterations, this doesn't work.
+    // Is that a bug?  If so, should the default numIterations be higher?
+    public MaxEntTrainer setNumIterations(int i) {
+        numIterations = i;
+        return this;
+    }
 
-		// If the data is not set, or has changed, 
-		// initialize the optimizable object and 
-		// replace the optimizer.
-		if (trainingSet != this.trainingSet ||
-			optimizable == null) {
-			getOptimizable(trainingSet);
-			optimizer = null;
-		}
-
-		// Build a new optimizer
-		if (optimizer == null) {
-			// If l1Weight is 0, this devolves to 
-			//  standard L-BFGS, but the implementation
-			//  may be faster.
-			optimizer = new LimitedMemoryBFGS(optimizable); 
-			//OrthantWiseLimitedMemoryBFGS(optimizable, l1Weight);
-		}
-		return optimizer;
-	}
-
-	/**
-	 * Specifies the maximum number of iterations to run during a single call
-	 * to <code>train</code> or <code>trainWithFeatureInduction</code>.  Not
-	 * currently functional.
-	 * @return This trainer
-	 */
-	// XXX Since we maximize before using numIterations, this doesn't work.
-	// Is that a bug?  If so, should the default numIterations be higher?
-	public MaxEntTrainer setNumIterations (int i) {
-		numIterations = i;
-		return this;
-	}
-
-	public int getIteration () {
-		if (optimizable == null)
-			return 0;
-		else
-		  return Integer.MAX_VALUE;
+    public int getIteration() {
+        if (optimizable == null)
+            return 0;
+        else
+            return Integer.MAX_VALUE;
 //			return optimizer.getIteration ();
-	}
+    }
 
-	/**
-	 * Sets a parameter to prevent overtraining.  A smaller variance for the prior
-	 * means that feature weights are expected to hover closer to 0, so extra
-	 * evidence is required to set a higher weight.
-	 * @return This trainer
-	 */
-	public MaxEntTrainer setGaussianPriorVariance (double gaussianPriorVariance) {
-		this.gaussianPriorVariance = gaussianPriorVariance;
-		return this;
-	}
+    /**
+     * Sets a parameter to prevent overtraining.  A smaller variance for the prior
+     * means that feature weights are expected to hover closer to 0, so extra
+     * evidence is required to set a higher weight.
+     *
+     * @return This trainer
+     */
+    public MaxEntTrainer setGaussianPriorVariance(double gaussianPriorVariance) {
+        this.gaussianPriorVariance = gaussianPriorVariance;
+        return this;
+    }
 
-	/** 
-	 *  Use an L1 prior. Larger values mean parameters will be closer to 0.
-	 *   Note that this setting overrides any Gaussian prior.
-	 */
-	public MaxEntTrainer setL1Weight(double l1Weight) {
-		this.l1Weight = l1Weight;
-		return this;
-	}
+    /**
+     * Use an L1 prior. Larger values mean parameters will be closer to 0.
+     * Note that this setting overrides any Gaussian prior.
+     */
+    public MaxEntTrainer setL1Weight(double l1Weight) {
+        this.l1Weight = l1Weight;
+        return this;
+    }
 
-	public MaxEnt train (InstanceList trainingSet) {
-		return train (trainingSet, numIterations);
-	}
+    public MaxEnt train(InstanceList trainingSet) {
+        return train(trainingSet, numIterations);
+    }
 
-	public MaxEnt train (InstanceList trainingSet, int numIterations)
-	{
-		logger.fine ("trainingSet.size() = "+trainingSet.size());
-		getOptimizer (trainingSet);  // This will set this.optimizer, this.optimizable
+    public MaxEnt train(InstanceList trainingSet, int numIterations) {
+        logger.fine("trainingSet.size() = " + trainingSet.size());
+        getOptimizer(trainingSet);  // This will set this.optimizer, this.optimizable
 
-		for (int i = 0; i < numIterations; i++) {
-			try {
-				finishedTraining = optimizer.optimize (1);
-		  } catch (InvalidOptimizableException e) {
-			  e.printStackTrace();
-			  logger.warning("Catching InvalidOptimizatinException! saying converged.");
-			  finishedTraining = true;
-			} catch (OptimizationException e) {
-				e.printStackTrace();
-				logger.info ("Catching OptimizationException; saying converged.");
-				finishedTraining = true;
-			}
-			if (finishedTraining)
-				break;
-		}
+        for (int i = 0; i < numIterations; i++) {
+            try {
+                finishedTraining = optimizer.optimize(1);
+            } catch (InvalidOptimizableException e) {
+                e.printStackTrace();
+                logger.warning("Catching InvalidOptimizatinException! saying converged.");
+                finishedTraining = true;
+            } catch (OptimizationException e) {
+                e.printStackTrace();
+                logger.info("Catching OptimizationException; saying converged.");
+                finishedTraining = true;
+            }
+            if (finishedTraining)
+                break;
+        }
 
-		// only if any number of iterations is allowed 
-		if (numIterations == Integer.MAX_VALUE) {
-			// Run it again because in our and Sam Roweis' experience, BFGS can still
-			// eke out more likelihood after first convergence by re-running without
-			// being restricted by its gradient history.
-			optimizer = null;
-			getOptimizer(trainingSet);
-			try {
-				finishedTraining = optimizer.optimize ();
-		  } catch (InvalidOptimizableException e) {
-			  e.printStackTrace();
-			  logger.warning("Catching InvalidOptimizatinException! saying converged.");
-			  finishedTraining = true;
-			} catch (OptimizationException e) {
-				e.printStackTrace();
-				logger.info ("Catching OptimizationException; saying converged.");
-				finishedTraining = true;
-			}
-		}
-		//TestMaximizable.testValueAndGradientCurrentParameters (mt);
-		progressLogger.info("\n"); //  progress messages are on one line; move on.
-		//logger.info("MaxEnt ngetValueCalls:"+getValueCalls()+"\nMaxEnt ngetValueGradientCalls:"+getValueGradientCalls());
-		return optimizable.getClassifier();
-	}
+        // only if any number of iterations is allowed
+        if (numIterations == Integer.MAX_VALUE) {
+            // Run it again because in our and Sam Roweis' experience, BFGS can still
+            // eke out more likelihood after first convergence by re-running without
+            // being restricted by its gradient history.
+            optimizer = null;
+            getOptimizer(trainingSet);
+            try {
+                finishedTraining = optimizer.optimize();
+            } catch (InvalidOptimizableException e) {
+                e.printStackTrace();
+                logger.warning("Catching InvalidOptimizatinException! saying converged.");
+                finishedTraining = true;
+            } catch (OptimizationException e) {
+                e.printStackTrace();
+                logger.info("Catching OptimizationException; saying converged.");
+                finishedTraining = true;
+            }
+        }
+        //TestMaximizable.testValueAndGradientCurrentParameters (mt);
+        progressLogger.info("\n"); //  progress messages are on one line; move on.
+        //logger.info("MaxEnt ngetValueCalls:"+getValueCalls()+"\nMaxEnt ngetValueGradientCalls:"+getValueGradientCalls());
+        return optimizable.getClassifier();
+    }
 
-	/**
-	 * <p>Trains a maximum entropy model using feature selection and feature induction
-	 * (adding conjunctions of features as new features).</p>
-	 *
-	 * @param trainingData A list of <code>Instance</code>s whose <code>data</code>
-	 * fields are binary, augmentable <code>FeatureVector</code>s.
-	 * and whose <code>target</code> fields are <code>Label</code>s.
-	 * @param validationData [not currently used] As <code>trainingData</code>,
-	 * or <code>null</code>.
-	 * @param testingData As <code>trainingData</code>, or <code>null</code>.
-	 * @param evaluator The evaluator to track training progress and decide whether
-	 * to continue, or <code>null</code>.
-	 * @param totalIterations The maximum total number of training iterations,
-	 * including those taken during feature induction.
-	 * @param numIterationsBetweenFeatureInductions How many iterations to train
-	 * between one round of feature induction and the next; this should usually
-	 * be fairly small, like 5 or 10, to avoid overfitting with current features.
-	 * @param numFeatureInductions How many rounds of feature induction to run
-	 * before beginning normal training.
-	 * @param numFeaturesPerFeatureInduction The maximum number of features to
-	 * choose during each round of featureInduction.
-	 *
-	 * @return The trained <code>MaxEnt</code> classifier
-	 */
-	/*
+    /**
+     * <p>Trains a maximum entropy model using feature selection and feature induction
+     * (adding conjunctions of features as new features).</p>
+     *
+     * @param trainingData A list of <code>Instance</code>s whose <code>data</code>
+     * fields are binary, augmentable <code>FeatureVector</code>s.
+     * and whose <code>target</code> fields are <code>Label</code>s.
+     * @param validationData [not currently used] As <code>trainingData</code>,
+     * or <code>null</code>.
+     * @param testingData As <code>trainingData</code>, or <code>null</code>.
+     * @param evaluator The evaluator to track training progress and decide whether
+     * to continue, or <code>null</code>.
+     * @param totalIterations The maximum total number of training iterations,
+     * including those taken during feature induction.
+     * @param numIterationsBetweenFeatureInductions How many iterations to train
+     * between one round of feature induction and the next; this should usually
+     * be fairly small, like 5 or 10, to avoid overfitting with current features.
+     * @param numFeatureInductions How many rounds of feature induction to run
+     * before beginning normal training.
+     * @param numFeaturesPerFeatureInduction The maximum number of features to
+     * choose during each round of featureInduction.
+     *
+     * @return The trained <code>MaxEnt</code> classifier
+     */
+    /*
 	// added - cjmaloof@linc.cis.upenn.edu
 	public Classifier trainWithFeatureInduction (InstanceList trainingData,
 			int totalIterations,
@@ -330,20 +308,19 @@ public class MaxEntTrainer extends ClassifierTrainer<MaxEnt>
 	}
 	*/
 
-	/**
-	 * <p>Like the other version of <code>trainWithFeatureInduction</code>, but
-	 * allows some default options to be changed.</p>
-	 *
-	 * @param maxent An initial partially-trained classifier (default <code>null</code>).
-	 * This classifier may be modified during training.
-	 * @param gainName The estimate of gain (log-likelihood increase) we want our chosen
-	 * features to maximize.
-	 * Should be one of <code>MaxEntTrainer.EXP_GAIN</code>,
-	 * <code>MaxEntTrainer.GRADIENT_GAIN</code>, or
-	 * <code>MaxEntTrainer.INFORMATION_GAIN</code> (default <code>EXP_GAIN</code>).
-	 *
-	 * @return The trained <code>MaxEnt</code> classifier
-	 */
+    /**
+     * <p>Like the other version of <code>trainWithFeatureInduction</code>, but
+     * allows some default options to be changed.</p>
+     *
+     * @param maxent   An initial partially-trained classifier (default <code>null</code>).
+     *                 This classifier may be modified during training.
+     * @param gainName The estimate of gain (log-likelihood increase) we want our chosen
+     *                 features to maximize.
+     *                 Should be one of <code>MaxEntTrainer.EXP_GAIN</code>,
+     *                 <code>MaxEntTrainer.GRADIENT_GAIN</code>, or
+     *                 <code>MaxEntTrainer.INFORMATION_GAIN</code> (default <code>EXP_GAIN</code>).
+     * @return The trained <code>MaxEnt</code> classifier
+     */
 	/* // Temporarily removed until I figure out how to handle induceFeaturesFor (testData)
 	public Classifier trainWithFeatureInduction (InstanceList trainingData,
 			int totalIterations,
@@ -478,22 +455,19 @@ public class MaxEntTrainer extends ClassifierTrainer<MaxEnt>
 		return maxent;
 	}
 */
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
 
+        builder.append("MaxEntTrainer");
+        if (numIterations < Integer.MAX_VALUE) {
+            builder.append(",numIterations=" + numIterations);
+        }
+        if (l1Weight != 0.0) {
+            builder.append(",l1Weight=" + l1Weight);
+        } else {
+            builder.append(",gaussianPriorVariance=" + gaussianPriorVariance);
+        }
 
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-
-		builder.append("MaxEntTrainer");
-		if (numIterations < Integer.MAX_VALUE) {
-			builder.append(",numIterations=" + numIterations);
-		}
-		if (l1Weight != 0.0) {
-			builder.append(",l1Weight=" + l1Weight);
-		}
-		else {
-			builder.append(",gaussianPriorVariance=" + gaussianPriorVariance);
-		}
-
-		return builder.toString();
-	}
+        return builder.toString();
+    }
 }

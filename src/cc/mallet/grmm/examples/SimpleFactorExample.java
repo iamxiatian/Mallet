@@ -10,7 +10,7 @@ import cc.mallet.grmm.types.*;
 
 /**
  * A simple example to demonstrate the row-major indexing of potential values.
- *
+ * <p>
  * Created: Aug 30, 2004
  *
  * @author <A HREF="mailto:casutton@cs.umass.edu>casutton@cs.umass.edu</A>
@@ -18,16 +18,15 @@ import cc.mallet.grmm.types.*;
  */
 public class SimpleFactorExample {
 
-    public static void main (String[] args)
-    {
-      FactorGraph mdl = new FactorGraph ();
-      Variable[] vars = new Variable [] {
-              new Variable (2),
-              new Variable (2),
-              new Variable (3),
-              new Variable (2),
-              new Variable (2),
-      };
+    public static void main(String[] args) {
+        FactorGraph mdl = new FactorGraph();
+        Variable[] vars = new Variable[]{
+                new Variable(2),
+                new Variable(2),
+                new Variable(3),
+                new Variable(2),
+                new Variable(2),
+        };
 
       /* Create an edge potential looking like
            VARS[0]   VARS[1]    VALUE
@@ -36,10 +35,10 @@ public class SimpleFactorExample {
               1         0        0.3
               1         1        2.3
        */
-      double[] arr = new double[] { 0.6, 1.3, 0.3, 2.3, };
-      mdl.addFactor (vars[0], vars[1], arr);
-      System.out.println ("Model with one edge potential:");
-      mdl.dump ();
+        double[] arr = new double[]{0.6, 1.3, 0.3, 2.3,};
+        mdl.addFactor(vars[0], vars[1], arr);
+        System.out.println("Model with one edge potential:");
+        mdl.dump();
 
       /* Add a three-clique potential whose values are
       VARS[2]   VARS[3]  VARS[4]    VALUE
@@ -56,12 +55,12 @@ public class SimpleFactorExample {
          2         1        0        23
          2         1        1        24
          */
-      double[] arr2 = { 1, 2, 3, 4, 11, 12, 13, 14, 21, 22, 23, 24 };
-      VarSet varSet = new HashVarSet (new Variable[] { vars[2], vars[3], vars[4] });
-      Factor ptl = new TableFactor (varSet, arr2);
-      mdl.addFactor (ptl);
+        double[] arr2 = {1, 2, 3, 4, 11, 12, 13, 14, 21, 22, 23, 24};
+        VarSet varSet = new HashVarSet(new Variable[]{vars[2], vars[3], vars[4]});
+        Factor ptl = new TableFactor(varSet, arr2);
+        mdl.addFactor(ptl);
 
-      System.out.println ("Model with a 3-clique added:");
-      mdl.dump ();
+        System.out.println("Model with a 3-clique added:");
+        mdl.dump();
     }
 }

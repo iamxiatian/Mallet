@@ -13,10 +13,10 @@ import cc.mallet.grmm.util.Models;
 
 /**
  * Abstract base class for inferencers.  This simply throws
- *  an UnsupportedOperationException for all methods, which
- *  is useful for subclasses that want to implement only
- *  specific inference functionality.
- *
+ * an UnsupportedOperationException for all methods, which
+ * is useful for subclasses that want to implement only
+ * specific inference functionality.
+ * <p>
  * Created: Mon Oct  6 17:01:21 2003
  *
  * @author <a href="mailto:casutton@cs.umass.edu">Charles Sutton</a>
@@ -24,67 +24,61 @@ import cc.mallet.grmm.util.Models;
  */
 abstract public class AbstractInferencer implements Inferencer, Cloneable {
 
-  public abstract void computeMarginals (FactorGraph fg);
+    // Serialization garbage
+    private static final long serialVersionUID = 1;
 
-  public double lookupJoint (Assignment assn)
-  {
-    return Math.exp (lookupLogJoint (assn));
-  }
+    public abstract void computeMarginals(FactorGraph fg);
 
-  public double lookupLogJoint (Assignment assn)
-  {
-    throw new UnsupportedOperationException
-      (this.getClass().getName()+" doesn't compute joint probabilities.");
-  }
+    public double lookupJoint(Assignment assn) {
+        return Math.exp(lookupLogJoint(assn));
+    }
 
-  public Factor lookupMarginal (VarSet c)
-  {
-    switch (c.size()) {
-      case 1:
-        return lookupMarginal (c.get (0));
-
-      default:
+    public double lookupLogJoint(Assignment assn) {
         throw new UnsupportedOperationException
-          (this.getClass().getName()+" doesn't compute marginals of arbitrary cliques.");
+                (this.getClass().getName() + " doesn't compute joint probabilities.");
     }
-  }
 
-  // TODO: Make destructive...
-  public double query (FactorGraph mdl, Assignment assn)
-  {
-    // Computes joint of assignment using chain rule
-    double marginal = 1.0;
-    for (int i = 0; i < assn.size(); i++) {
-      Variable var = assn.getVariable (i);
-      computeMarginals (mdl);
-      Factor ptl = lookupMarginal (var);
-      marginal *= ptl.value (assn);
-      mdl = Models.addEvidence (mdl, new Assignment (var, assn.get (var)));
+    public Factor lookupMarginal(VarSet c) {
+        switch (c.size()) {
+            case 1:
+                return lookupMarginal(c.get(0));
+
+            default:
+                throw new UnsupportedOperationException
+                        (this.getClass().getName() + " doesn't compute marginals of arbitrary cliques.");
+        }
     }
-    return marginal;
-  }
 
-  abstract public Factor lookupMarginal(Variable variable);
-
-  public Inferencer duplicate () {
-    try {
-      return (Inferencer) clone();
-    } catch (CloneNotSupportedException e) {
-      throw new RuntimeException (e);
+    // TODO: Make destructive...
+    public double query(FactorGraph mdl, Assignment assn) {
+        // Computes joint of assignment using chain rule
+        double marginal = 1.0;
+        for (int i = 0; i < assn.size(); i++) {
+            Variable var = assn.getVariable(i);
+            computeMarginals(mdl);
+            Factor ptl = lookupMarginal(var);
+            marginal *= ptl.value(assn);
+            mdl = Models.addEvidence(mdl, new Assignment(var, assn.get(var)));
+        }
+        return marginal;
     }
-  }
 
-  public void dump ()
-  {
-    throw new UnsupportedOperationException ();
-  }
+    abstract public Factor lookupMarginal(Variable variable);
 
-  public void reportTime ()
-  {
-    System.err.println ("AbstractInferencer: reportTime(): No report available.");
-  }
+    public Inferencer duplicate() {
+        try {
+            return (Inferencer) clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-  // Serialization garbage
-  private static final long serialVersionUID = 1;
+    public void dump() {
+        throw new UnsupportedOperationException();
+    }
+
+    public void reportTime() {
+        System.err.println("AbstractInferencer: reportTime(): No report available.");
+    }
 
 } // AbstractInferencer

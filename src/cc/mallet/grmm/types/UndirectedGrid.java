@@ -8,9 +8,9 @@ package cc.mallet.grmm.types;
 
 /**
  * A grid-shaped undirected graphical model.  All this adds to the
- *  base UndirectedModel class is the ability to retrieve variables
- *  by their (x,y) position.
- *
+ * base UndirectedModel class is the ability to retrieve variables
+ * by their (x,y) position.
+ * <p>
  * Created: Mar 28, 2005
  *
  * @author <A HREF="mailto:casutton@cs.umass.edu>casutton@cs.umass.edu</A>
@@ -18,34 +18,32 @@ package cc.mallet.grmm.types;
  */
 public class UndirectedGrid extends UndirectedModel {
 
-  private Variable[][] vars;
-  private int width;
-  private int height;
+    private Variable[][] vars;
+    private int width;
+    private int height;
 
-  /**
-   * Creates an undirected grid and its associated Variable objects.
-   * @param width The max x coordinate of the grid.
-   * @param height The max y coordinate of thee grid.
-   * @param numOutcomes The number of outcomes of each created variable.
-   */
-  public UndirectedGrid (int width, int height, int numOutcomes)
-  {
-    super (width * height);
-    this.width = width;
-    this.height = height;
-    addVariables (numOutcomes);
+    /**
+     * Creates an undirected grid and its associated Variable objects.
+     *
+     * @param width       The max x coordinate of the grid.
+     * @param height      The max y coordinate of thee grid.
+     * @param numOutcomes The number of outcomes of each created variable.
+     */
+    public UndirectedGrid(int width, int height, int numOutcomes) {
+        super(width * height);
+        this.width = width;
+        this.height = height;
+        addVariables(numOutcomes);
 //    addEdges ();
-  }
+    }
 
-  public int getWidth ()
-  {
-    return width;
-  }
+    public int getWidth() {
+        return width;
+    }
 
-  public int getHeight ()
-  {
-    return height;
-  }
+    public int getHeight() {
+        return height;
+    }
 
   /* xxx Is this necessary any more?
   private void addEdges ()
@@ -69,19 +67,17 @@ public class UndirectedGrid extends UndirectedModel {
   }
   */
 
-  private void addVariables (int numOutcomes)
-  {
-    vars = new Variable [width][height];
-    for (int x = 0; x < width; x++) {
-      for (int y = 0; y < height; y++) {
-        vars[x][y] = new Variable (numOutcomes);
-      }
+    private void addVariables(int numOutcomes) {
+        vars = new Variable[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                vars[x][y] = new Variable(numOutcomes);
+            }
+        }
     }
-  }
 
-  public Variable get (int x, int y)
-  {
-    return vars[x][y];
-  }
+    public Variable get(int x, int y) {
+        return vars[x][y];
+    }
 
 }

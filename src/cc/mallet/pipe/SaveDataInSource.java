@@ -6,43 +6,41 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-
 package cc.mallet.pipe;
 
-import java.io.*;
-
-import cc.mallet.pipe.Pipe;
 import cc.mallet.types.Instance;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
 /**
  * Set the source field of each instance to its data field.
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+ *
+ * @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
-public class SaveDataInSource extends Pipe implements Serializable
-{
-	public SaveDataInSource ()
-	{
-	}
+public class SaveDataInSource extends Pipe implements Serializable {
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 0;
 
-	public Instance pipe (Instance carrier)
-	{
-		carrier.setSource (carrier.getData());
-		return carrier;
-	}
+    // Serialization
 
-	// Serialization 
-	
-	private static final long serialVersionUID = 1;
-	private static final int CURRENT_SERIAL_VERSION = 0;
-	
-	private void writeObject (ObjectOutputStream out) throws IOException {
-		out.writeInt (CURRENT_SERIAL_VERSION);
-	}
-	
-	private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
-		int version = in.readInt ();
-	}
+    public SaveDataInSource() {
+    }
+
+    public Instance pipe(Instance carrier) {
+        carrier.setSource(carrier.getData());
+        return carrier;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(CURRENT_SERIAL_VERSION);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        int version = in.readInt();
+    }
 
 }

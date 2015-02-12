@@ -6,13 +6,12 @@
    information, see the file `LICENSE' included with this distribution. */
 package cc.mallet.grmm.util;
 
-import org._3pq.jgrapht.UndirectedGraph;
-import org._3pq.jgrapht.graph.SimpleGraph;
-
 import cc.mallet.grmm.types.Factor;
 import cc.mallet.grmm.types.FactorGraph;
 import cc.mallet.grmm.types.VarSet;
 import cc.mallet.grmm.types.Variable;
+import org.jgrapht.UndirectedGraph;
+import org.jgrapht.graph.SimpleGraph;
 
 import java.util.Iterator;
 
@@ -24,34 +23,34 @@ import java.util.Iterator;
  */
 public class Graphs {
 
-  /**
-   * Converts a FactorGraph into a plain graph where each Variable is a vertex,
-   * and two Variables are connected by an edge if they are arguments to the same factor. 
-   *  (Essentially converts an fg into an MRF structure, minus the factors.)
-   * @param fg
-   * @return a Graph
-   */
-  public static UndirectedGraph mdlToGraph (FactorGraph fg)
-  {
-    UndirectedGraph g = new SimpleGraph ();
+    /**
+     * Converts a FactorGraph into a plain graph where each Variable is a vertex,
+     * and two Variables are connected by an edge if they are arguments to the same factor.
+     * (Essentially converts an fg into an MRF structure, minus the factors.)
+     *
+     * @param fg
+     * @return a Graph
+     */
+    public static UndirectedGraph mdlToGraph(FactorGraph fg) {
+        UndirectedGraph g = new SimpleGraph(Variable.class);
 
-    for (Iterator it = fg.variablesIterator (); it.hasNext ();) {
-      Variable var = (Variable) it.next ();
-      g.addVertex (var);
-    }
-
-    for (Iterator it = fg.factorsIterator (); it.hasNext ();) {
-      Factor factor = (Factor) it.next ();
-      VarSet varSet = factor.varSet ();
-      int nv = varSet.size ();
-      for (int i = 0; i < nv; i++) {
-        for (int j = i + 1; j < nv; j++) {
-          g.addEdge (varSet.get (i), varSet.get (j));
+        for (Iterator it = fg.variablesIterator(); it.hasNext(); ) {
+            Variable var = (Variable) it.next();
+            g.addVertex(var);
         }
-      }
-    }
 
-    return g;
-  }
+        for (Iterator it = fg.factorsIterator(); it.hasNext(); ) {
+            Factor factor = (Factor) it.next();
+            VarSet varSet = factor.varSet();
+            int nv = varSet.size();
+            for (int i = 0; i < nv; i++) {
+                for (int j = i + 1; j < nv; j++) {
+                    g.addEdge(varSet.get(i), varSet.get(j));
+                }
+            }
+        }
+
+        return g;
+    }
 
 }

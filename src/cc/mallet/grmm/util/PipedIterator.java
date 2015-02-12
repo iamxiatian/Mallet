@@ -7,8 +7,8 @@
 package cc.mallet.grmm.util;
 
 import cc.mallet.pipe.Pipe;
-import cc.mallet.pipe.iterator.PipeInputIterator;
 import cc.mallet.types.Instance;
+
 import java.util.Iterator;
 
 /**
@@ -17,30 +17,30 @@ import java.util.Iterator;
  * @author <A HREF="mailto:casutton@cs.umass.edu>casutton@cs.umass.edu</A>
  * @version $Id: PipedIterator.java,v 1.1 2007/10/22 21:37:58 mccallum Exp $
  */
-@Deprecated // With the new Pipe's able to act as iterators themselves, this should no longer be necessary
+@Deprecated
+// With the new Pipe's able to act as iterators themselves, this should no longer be necessary
 public class PipedIterator implements Iterator<Instance> {
 
-  Iterator<Instance> subIt;
-  Pipe pipe;
+    Iterator<Instance> subIt;
+    Pipe pipe;
 
-  public PipedIterator (Iterator<Instance> subIt, Pipe pipe)
-  {
-    this.subIt = subIt;
-    this.pipe = pipe;
-  }
+    public PipedIterator(Iterator<Instance> subIt, Pipe pipe) {
+        this.subIt = subIt;
+        this.pipe = pipe;
+    }
 
-  // The PipeInputIterator interface
-  public Instance next ()
-  {
-    Instance inst = subIt.next ();
-    inst = pipe.pipe (inst);
-    return new Instance (inst.getData (), inst.getTarget (), inst.getName (), inst.getSource ());
-  }
+    // The PipeInputIterator interface
+    public Instance next() {
+        Instance inst = subIt.next();
+        inst = pipe.pipe(inst);
+        return new Instance(inst.getData(), inst.getTarget(), inst.getName(), inst.getSource());
+    }
 
-  public boolean hasNext ()
-  {
-    return subIt.hasNext ();
-  }
-  
-  public void remove () { throw new IllegalStateException ("This Iterator<Instance> does not implement remove()."); }
+    public boolean hasNext() {
+        return subIt.hasNext();
+    }
+
+    public void remove() {
+        throw new IllegalStateException("This Iterator<Instance> does not implement remove().");
+    }
 }

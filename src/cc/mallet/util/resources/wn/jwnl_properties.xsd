@@ -8,8 +8,10 @@
                 <xsd:element ref="dictionary"/>
                 <xsd:element ref="version"/>
                 <xsd:element ref="dictionary_element_factory"/>
-                <xsd:element ref="resource" minOccurs="0" maxOccurs="unbounded"/>
-            </xsd:sequence><!--<!ATTLIST jwnl_properties language CDATA #IMPLIED>-->
+                <xsd:element ref="resource" minOccurs="0"
+                             maxOccurs="unbounded"/>
+            </xsd:sequence>
+            <!--<!ATTLIST jwnl_properties language CDATA #IMPLIED>-->
             <xsd:attribute name="language">
                 <xsd:simpleType>
                     <xsd:restriction base="xsd:string"/>
@@ -28,7 +30,8 @@
         <xsd:complexType>
             <xsd:choice>
                 <xsd:element ref="param" minOccurs="0" maxOccurs="unbounded"/>
-            </xsd:choice><!--<!ATTLIST dictionary class CDATA #IMPLIED>-->
+            </xsd:choice>
+            <!--<!ATTLIST dictionary class CDATA #IMPLIED>-->
             <xsd:attribute name="class_name">
                 <xsd:simpleType>
                     <xsd:restriction base="xsd:string"/>
@@ -42,7 +45,8 @@
         <xsd:complexType>
             <xsd:choice>
                 <xsd:element ref="param" minOccurs="0" maxOccurs="unbounded"/>
-            </xsd:choice><!--<!ATTLIST param name CDATA #IMPLIED>-->
+            </xsd:choice>
+            <!--<!ATTLIST param name CDATA #IMPLIED>-->
             <xsd:attribute name="name">
                 <xsd:simpleType>
                     <xsd:restriction base="xsd:string"/>
@@ -87,7 +91,8 @@
         <xsd:complexType>
             <xsd:choice>
                 <xsd:element ref="param" minOccurs="0" maxOccurs="unbounded"/>
-            </xsd:choice><!--<!ATTLIST dictionary_element_factory class CDATA #IMPLIED>-->
+            </xsd:choice>
+            <!--<!ATTLIST dictionary_element_factory class CDATA #IMPLIED>-->
             <xsd:attribute name="class_name">
                 <xsd:simpleType>
                     <xsd:restriction base="xsd:string"/>
@@ -96,7 +101,7 @@
         </xsd:complexType>
     </xsd:element>
 
-  <!--<!ELEMENT resource EMPTY>-->
+    <!--<!ELEMENT resource EMPTY>-->
     <xsd:element name="resource">
         <xsd:complexType><!--<!ATTLIST resource class CDATA #IMPLIED>-->
             <xsd:attribute name="class_name">

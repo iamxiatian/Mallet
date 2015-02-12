@@ -6,33 +6,32 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.types;
-import cc.mallet.fst.Segment;
 
-public class SequencePair<I,O>
-{
-	protected Sequence<I> input;
-	protected Sequence<O> output;
+public class SequencePair<I, O> {
+    protected Sequence<I> input;
+    protected Sequence<O> output;
 
-	public SequencePair (Sequence<I> input, Sequence<O> output)
-	{
-		this.input = input;
-		this.output = output;
-	}
+    public SequencePair(Sequence<I> input, Sequence<O> output) {
+        this.input = input;
+        this.output = output;
+    }
 
-	protected SequencePair ()
-	{
-	}
+    protected SequencePair() {
+    }
 
-	public Sequence<I> input() { return input; }
-	public Sequence<O> output() { return output; }
-	
+    public Sequence<I> input() {
+        return input;
+    }
+
+    public Sequence<O> output() {
+        return output;
+    }
+
 	/* This doesn't belong here. -akm 11/2007
 	public Sequence[] outputNBest() {return outputNBest;}
 	public double[] costNBest(){return costNBest;}

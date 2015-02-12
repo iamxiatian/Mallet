@@ -1,40 +1,49 @@
 package cc.mallet.types;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class AlphabetFactory {
 
-	/** Create a dummy alphabet with <code>n</code> dimensions */
-	public static Alphabet alphabetOfSize (int n) {
-		Alphabet alphabet = new Alphabet();
-		for (int i = 0; i < n; i++) {
-			alphabet.lookupIndex("d" + i);
-		}
-		return alphabet;
-	}
+    /**
+     * Create a dummy alphabet with <code>n</code> dimensions
+     */
+    public static Alphabet alphabetOfSize(int n) {
+        Alphabet alphabet = new Alphabet();
+        for (int i = 0; i < n; i++) {
+            alphabet.lookupIndex("d" + i);
+        }
+        return alphabet;
+    }
 
-	/** Create a dummy label alphabet with <code>n</code> dimensions */
-	public static LabelAlphabet labelAlphabetOfSize (int n) {
-		LabelAlphabet alphabet = new LabelAlphabet();
-		for (int i = 0; i < n; i++) {
-			alphabet.lookupIndex("d" + i);
-		}
-		return alphabet;
-	}
+    /**
+     * Create a dummy label alphabet with <code>n</code> dimensions
+     */
+    public static LabelAlphabet labelAlphabetOfSize(int n) {
+        LabelAlphabet alphabet = new LabelAlphabet();
+        for (int i = 0; i < n; i++) {
+            alphabet.lookupIndex("d" + i);
+        }
+        return alphabet;
+    }
 
-	/** Load an alphabet from a file, one item per line */
-	public static Alphabet loadFromFile(File alphabetFile) throws IOException {
-		BufferedReader reader = new BufferedReader(new FileReader(alphabetFile));
-		Alphabet alphabet = new Alphabet();
-		String item;
+    /**
+     * Load an alphabet from a file, one item per line
+     */
+    public static Alphabet loadFromFile(File alphabetFile) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(alphabetFile));
+        Alphabet alphabet = new Alphabet();
+        String item;
 
-		while ((item = reader.readLine()) != null) {
-			alphabet.lookupIndex(item);
-		}
-		
-		reader.close();
+        while ((item = reader.readLine()) != null) {
+            alphabet.lookupIndex(item);
+        }
 
-		return alphabet;
-	}
-	
+        reader.close();
+
+        return alphabet;
+    }
+
 }

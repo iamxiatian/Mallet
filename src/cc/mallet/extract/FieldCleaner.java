@@ -8,8 +8,8 @@ package cc.mallet.extract;
 
 /**
  * Interface for functions that are used to clean up field values after
- *  extraction has been performed.
- *
+ * extraction has been performed.
+ * <p>
  * Created: Nov 25, 2004
  *
  * @author <A HREF="mailto:casutton@cs.umass.edu>casutton@cs.umass.edu</A>
@@ -17,11 +17,12 @@ package cc.mallet.extract;
  */
 public interface FieldCleaner {
 
-  /**
-   * Returns a post-processed version of a field.
-   * @param rawFieldValue
-   * @return A processed string
-   */
-  String cleanFieldValue (String rawFieldValue);
+    /**
+     * Returns a post-processed version of a field.
+     *
+     * @param rawFieldValue
+     * @return A processed string
+     */
+    String cleanFieldValue(String rawFieldValue);
 
 }

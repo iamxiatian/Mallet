@@ -7,11 +7,11 @@
 package cc.mallet.grmm.inference.gbp;
 
 
-import java.util.Iterator;
-
 import cc.mallet.grmm.types.Factor;
 import cc.mallet.grmm.types.FactorGraph;
 import cc.mallet.grmm.types.Variable;
+
+import java.util.Iterator;
 
 /**
  * Created: May 30, 2005
@@ -21,34 +21,34 @@ import cc.mallet.grmm.types.Variable;
  */
 public class BPRegionGenerator implements RegionGraphGenerator {
 
-  public RegionGraph constructRegionGraph (FactorGraph mdl)
-  {
-    RegionGraph rg = new RegionGraph ();
-    for (Iterator it = mdl.factorsIterator (); it.hasNext();) {
-      Factor ptl = (Factor) it.next ();
-      if (ptl.varSet ().size() == 1) continue;  // Single-node potentials handled separately
+    public RegionGraph constructRegionGraph(FactorGraph mdl) {
+        RegionGraph rg = new RegionGraph();
+        for (Iterator it = mdl.factorsIterator(); it.hasNext(); ) {
+            Factor ptl = (Factor) it.next();
+            if (ptl.varSet().size() == 1)
+                continue;  // Single-node potentials handled separately
 
-      Region parent = new Region (ptl);
+            Region parent = new Region(ptl);
 
-      // Now add appropriate edges to region graph
-      for (Iterator childIt = ptl.varSet().iterator (); childIt.hasNext();) {
-        Variable var = (Variable) childIt.next ();
-        Factor childPtl = mdl.factorOf (var);
-        Region child = rg.findRegion (childPtl, true);
+            // Now add appropriate edges to region graph
+            for (Iterator childIt = ptl.varSet().iterator(); childIt.hasNext(); ) {
+                Variable var = (Variable) childIt.next();
+                Factor childPtl = mdl.factorOf(var);
+                Region child = rg.findRegion(childPtl, true);
 
-        //add node potential to parent if necessary
-        if (childPtl != null) {
-          parent.addFactor (childPtl);
-          child.addFactor (childPtl);
+                //add node potential to parent if necessary
+                if (childPtl != null) {
+                    parent.addFactor(childPtl);
+                    child.addFactor(childPtl);
+                }
+
+                rg.add(parent, child);
+            }
         }
 
-        rg.add (parent, child);
-      }
+        rg.computeInferenceCaches();
+
+        return rg;
     }
-
-    rg.computeInferenceCaches ();
-
-    return rg;
-  }
 
 }

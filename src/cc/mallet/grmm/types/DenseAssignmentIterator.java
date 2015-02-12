@@ -8,35 +8,33 @@
 package cc.mallet.grmm.types;
 
 
-
 class DenseAssignmentIterator extends AbstractAssignmentIterator implements AssignmentIterator {
 
-  private int current = 0;
+    private int current = 0;
 
-  DenseAssignmentIterator (VarSet verts)
-	{
-    super (verts);
-  }
-
-  DenseAssignmentIterator (VarSet verts, int index)
-	{
-    super (verts);
-    current = index;
-    if (current >= max) {
-      throw new IllegalArgumentException ("No assigment # "+index +" for "+this+".  Max is "+max);
+    DenseAssignmentIterator(VarSet verts) {
+        super(verts);
     }
-  }
 
-  public void advance()
-  {
-    current++;
-  }
+    DenseAssignmentIterator(VarSet verts, int index) {
+        super(verts);
+        current = index;
+        if (current >= max) {
+            throw new IllegalArgumentException("No assigment # " + index + " for " + this + ".  Max is " + max);
+        }
+    }
 
-  //xxx wise to make public?
-  public int indexOfCurrentAssn () { return current; }
+    public void advance() {
+        current++;
+    }
 
-  public boolean hasNext() {
-    return current < max;
-  }
+    //xxx wise to make public?
+    public int indexOfCurrentAssn() {
+        return current;
+    }
+
+    public boolean hasNext() {
+        return current < max;
+    }
 
 }

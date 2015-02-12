@@ -7,12 +7,10 @@
 package cc.mallet.grmm.learning;
 
 
-import java.util.List;
-import java.util.Iterator;
-
-import cc.mallet.grmm.learning.ACRF;
-import cc.mallet.grmm.learning.ACRFEvaluator;
 import cc.mallet.types.InstanceList;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created: Aug 24, 2005
@@ -22,31 +20,28 @@ import cc.mallet.types.InstanceList;
  */
 public class AcrfSerialEvaluator extends ACRFEvaluator {
 
-  private List evals;
+    private List evals;
 
-  public AcrfSerialEvaluator (List evals)
-  {
-    super();
-    this.evals = evals;
-  }
-
-  public boolean evaluate (ACRF acrf, int iter, InstanceList training, InstanceList validation, InstanceList testing)
-  {
-    boolean ret = true;
-    for (Iterator it = evals.iterator (); it.hasNext ();) {
-      ACRFEvaluator evaluator = (ACRFEvaluator) it.next ();
-      // Return false (i.e., stop training) if any sub-evaluator does.
-      ret = ret && evaluator.evaluate (acrf, iter, training, validation, testing);
+    public AcrfSerialEvaluator(List evals) {
+        super();
+        this.evals = evals;
     }
-    return ret;
-  }
 
-  public void test (InstanceList gold, List returned, String description)
-  {
-    for (Iterator it = evals.iterator (); it.hasNext ();) {
-      ACRFEvaluator eval =  (ACRFEvaluator) it.next ();
-      eval.test (gold, returned, description);
+    public boolean evaluate(ACRF acrf, int iter, InstanceList training, InstanceList validation, InstanceList testing) {
+        boolean ret = true;
+        for (Iterator it = evals.iterator(); it.hasNext(); ) {
+            ACRFEvaluator evaluator = (ACRFEvaluator) it.next();
+            // Return false (i.e., stop training) if any sub-evaluator does.
+            ret = ret && evaluator.evaluate(acrf, iter, training, validation, testing);
+        }
+        return ret;
     }
-  }
-  
+
+    public void test(InstanceList gold, List returned, String description) {
+        for (Iterator it = evals.iterator(); it.hasNext(); ) {
+            ACRFEvaluator eval = (ACRFEvaluator) it.next();
+            eval.test(gold, returned, description);
+        }
+    }
+
 }

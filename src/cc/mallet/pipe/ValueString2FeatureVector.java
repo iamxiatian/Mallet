@@ -1,42 +1,48 @@
 package cc.mallet.pipe;
 
-import cc.mallet.types.*;
+import cc.mallet.types.Alphabet;
+import cc.mallet.types.FeatureVector;
+import cc.mallet.types.Instance;
+
 import java.io.Serializable;
 
 public class ValueString2FeatureVector extends Pipe implements Serializable {
-	
-	public ValueString2FeatureVector (String[] fieldNames) {
-		Alphabet alphabet = new Alphabet();
 
-		for (String s: fieldNames) { alphabet.lookupIndex(s); }
+    public ValueString2FeatureVector(String[] fieldNames) {
+        Alphabet alphabet = new Alphabet();
 
-		this.dataAlphabet = alphabet;
-	}
+        for (String s : fieldNames) {
+            alphabet.lookupIndex(s);
+        }
 
-	public ValueString2FeatureVector () {}
-	
-	public Instance pipe(Instance carrier) {
+        this.dataAlphabet = alphabet;
+    }
 
-		String data = (String) carrier.getData();
-		
-		String[] fields = data.trim().split("\\s+");
-		double[] values = new double[fields.length];
-		
-		for (int i=0; i<fields.length; i++) {
-			values[i] = Double.parseDouble(fields[i]);
-		}
+    public ValueString2FeatureVector() {
+    }
 
-		if (this.dataAlphabet == null) {
-			Alphabet alphabet = new Alphabet();
-			for (int i=0; i < fields.length; i++) {
-				alphabet.lookupIndex("V" + i);
-			}
-			this.dataAlphabet = alphabet;
-		}
+    public Instance pipe(Instance carrier) {
 
-		carrier.setData(new FeatureVector(this.dataAlphabet, values));
+        String data = (String) carrier.getData();
 
-		return carrier;
-	}
-	
+        String[] fields = data.trim().split("\\s+");
+        double[] values = new double[fields.length];
+
+        for (int i = 0; i < fields.length; i++) {
+            values[i] = Double.parseDouble(fields[i]);
+        }
+
+        if (this.dataAlphabet == null) {
+            Alphabet alphabet = new Alphabet();
+            for (int i = 0; i < fields.length; i++) {
+                alphabet.lookupIndex("V" + i);
+            }
+            this.dataAlphabet = alphabet;
+        }
+
+        carrier.setData(new FeatureVector(this.dataAlphabet, values));
+
+        return carrier;
+    }
+
 }

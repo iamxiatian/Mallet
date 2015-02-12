@@ -7,409 +7,399 @@
 
 package cc.mallet.topics;
 
-import java.util.*;
-import java.util.logging.*;
-import java.util.zip.*;
+import cc.mallet.types.*;
+import cc.mallet.util.MalletLogger;
+import cc.mallet.util.Randoms;
+import gnu.trove.map.hash.TIntIntHashMap;
 
 import java.io.*;
 import java.text.NumberFormat;
-
-import cc.mallet.topics.*;
-import cc.mallet.types.*;
-import cc.mallet.util.*;
-
-import gnu.trove.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * A non-parametric topic model that uses the "minimal path" assumption
- *  to reduce bookkeeping.
- * 
+ * to reduce bookkeeping.
+ *
  * @author David Mimno
  */
 
 public class NPTopicModel implements Serializable {
 
-	private static Logger logger = MalletLogger.getLogger(NPTopicModel.class.getName());
-	
-	// the training instances and their topic assignments
-	protected ArrayList<TopicAssignment> data;  
+    public static final double DEFAULT_BETA = 0.01;
+    private static Logger logger = MalletLogger.getLogger(NPTopicModel.class.getName());
+    public int showTopicsInterval = 50;
+    public int wordsPerTopic = 10;
+    // the training instances and their topic assignments
+    protected ArrayList<TopicAssignment> data;
+    // the alphabet for the input data
+    protected Alphabet alphabet;
+    // the alphabet for the topics
+    protected LabelAlphabet topicAlphabet;
+    // The largest topic ID seen so far
+    protected int maxTopic;
+    // The current number of topics
+    protected int numTopics;
+    // The size of the vocabulary
+    protected int numTypes;
+    // Prior parameters
+    protected double alpha;
+    protected double gamma;
+    protected double beta;   // Prior on per-topic multinomial distribution over words
+    protected double betaSum;
+    // Statistics needed for sampling.
+    protected TIntIntHashMap[] typeTopicCounts; // indexed by <feature index, topic index>
+    protected TIntIntHashMap tokensPerTopic; // indexed by <topic index>
+    // The number of documents that contain at least one
+    //  token with a given topic.
+    protected TIntIntHashMap docsPerTopic;
+    protected int totalDocTopics = 0;
+    protected Randoms random;
+    protected NumberFormat formatter;
+    protected boolean printLogLikelihood = false;
 
-	// the alphabet for the input data
-	protected Alphabet alphabet; 
+    /**
+     * @param alpha this parameter balances the local document topic counts with
+     *              the global distribution over topics.
+     * @param gamma this parameter is the weight on a completely new, never-before-seen topic
+     *              in the global distribution.
+     * @param beta  this parameter controls the variability of the topic-word distributions
+     */
+    public NPTopicModel(double alpha, double gamma, double beta) {
 
-	// the alphabet for the topics
-	protected LabelAlphabet topicAlphabet; 
-	
-	// The largest topic ID seen so far
-	protected int maxTopic;
-	// The current number of topics
-	protected int numTopics;
+        this.data = new ArrayList<TopicAssignment>();
+        this.topicAlphabet = AlphabetFactory.labelAlphabetOfSize(1);
 
-	// The size of the vocabulary
-	protected int numTypes;
+        this.alpha = alpha;
+        this.gamma = gamma;
+        this.beta = beta;
+        this.random = new Randoms();
 
-	// Prior parameters
-	protected double alpha;
-	protected double gamma;
-	protected double beta;   // Prior on per-topic multinomial distribution over words
-	protected double betaSum;
-	public static final double DEFAULT_BETA = 0.01;
-	
-	// Statistics needed for sampling.
-	protected TIntIntHashMap[] typeTopicCounts; // indexed by <feature index, topic index>
-	protected TIntIntHashMap tokensPerTopic; // indexed by <topic index>
+        tokensPerTopic = new TIntIntHashMap();
+        docsPerTopic = new TIntIntHashMap();
 
-	// The number of documents that contain at least one
-	//  token with a given topic.
-	protected TIntIntHashMap docsPerTopic;
-	protected int totalDocTopics = 0;
-	
-	public int showTopicsInterval = 50;
-	public int wordsPerTopic = 10;
-	
-	protected Randoms random;
-	protected NumberFormat formatter;
-	protected boolean printLogLikelihood = false;
-	
-	/** @param alpha this parameter balances the local document topic counts with 
-	 *                the global distribution over topics.
-	 *  @param gamma this parameter is the weight on a completely new, never-before-seen topic
-	 *                in the global distribution.
-	 *  @param beta  this parameter controls the variability of the topic-word distributions
-	 */
-	public NPTopicModel (double alpha, double gamma, double beta) {
+        formatter = NumberFormat.getInstance();
+        formatter.setMaximumFractionDigits(5);
 
-		this.data = new ArrayList<TopicAssignment>();
-		this.topicAlphabet = AlphabetFactory.labelAlphabetOfSize(1);
+        logger.info("Non-Parametric LDA");
+    }
 
-		this.alpha = alpha;
-		this.gamma = gamma;
-		this.beta = beta;
-		this.random = new Randoms();
-		
-		tokensPerTopic = new TIntIntHashMap();
-		docsPerTopic = new TIntIntHashMap();
-		
-		formatter = NumberFormat.getInstance();
-		formatter.setMaximumFractionDigits(5);
+    public static void main(String[] args) throws IOException {
 
-		logger.info("Non-Parametric LDA");
-	}
-	
-	public void setTopicDisplay(int interval, int n) {
-		this.showTopicsInterval = interval;
-		this.wordsPerTopic = n;
-	}
+        InstanceList training = InstanceList.load(new File(args[0]));
 
-	public void setRandomSeed(int seed) {
-		random = new Randoms(seed);
-	}
+        int numTopics = args.length > 1 ? Integer.parseInt(args[1]) : 200;
 
-	public void addInstances (InstanceList training, int initialTopics) {
+        NPTopicModel lda = new NPTopicModel(5.0, 10.0, 0.1);
+        lda.addInstances(training, numTopics);
+        lda.sample(1000);
+    }
 
-		alphabet = training.getDataAlphabet();
-		numTypes = alphabet.size();
-		
-		betaSum = beta * numTypes;
-		
-		typeTopicCounts = new TIntIntHashMap[numTypes];
-		for (int type=0; type < numTypes; type++) {
-			typeTopicCounts[type] = new TIntIntHashMap();
-		}
+    public void setTopicDisplay(int interval, int n) {
+        this.showTopicsInterval = interval;
+        this.wordsPerTopic = n;
+    }
 
-		numTopics = initialTopics;
-		
-		int doc = 0;
+    public void setRandomSeed(int seed) {
+        random = new Randoms(seed);
+    }
 
-		for (Instance instance : training) {
-			doc++;
+    public void addInstances(InstanceList training, int initialTopics) {
 
-			TIntIntHashMap topicCounts = new TIntIntHashMap();
+        alphabet = training.getDataAlphabet();
+        numTypes = alphabet.size();
 
-			FeatureSequence tokens = (FeatureSequence) instance.getData();
-			LabelSequence topicSequence =
-				new LabelSequence(topicAlphabet, new int[ tokens.size() ]);
-			
-			int[] topics = topicSequence.getFeatures();
-			for (int position = 0; position < tokens.size(); position++) {
+        betaSum = beta * numTypes;
 
-				int topic = random.nextInt(numTopics);
-				tokensPerTopic.adjustOrPutValue(topic, 1, 1);
-				topics[position] = topic;
+        typeTopicCounts = new TIntIntHashMap[numTypes];
+        for (int type = 0; type < numTypes; type++) {
+            typeTopicCounts[type] = new TIntIntHashMap();
+        }
 
-				// Keep track of the number of docs with at least one token
-				//  in a given topic.
-				if (! topicCounts.containsKey(topic)) {
-					docsPerTopic.adjustOrPutValue(topic, 1, 1);
-					totalDocTopics++;
-					topicCounts.put(topic, 1);
-				}
-				else {
-					topicCounts.adjustValue(topic, 1);
-				}
-				
-				int type = tokens.getIndexAtPosition(position);
-				typeTopicCounts[type].adjustOrPutValue(topic, 1, 1);
-			}
+        numTopics = initialTopics;
 
-			TopicAssignment t = new TopicAssignment (instance, topicSequence);
-			data.add (t);
-		}
+        int doc = 0;
 
-		maxTopic = numTopics - 1;
+        for (Instance instance : training) {
+            doc++;
 
-	}
+            TIntIntHashMap topicCounts = new TIntIntHashMap();
 
-	public void sample (int iterations) throws IOException {
+            FeatureSequence tokens = (FeatureSequence) instance.getData();
+            LabelSequence topicSequence =
+                    new LabelSequence(topicAlphabet, new int[tokens.size()]);
 
-		for (int iteration = 1; iteration <= iterations; iteration++) {
+            int[] topics = topicSequence.getFeatures();
+            for (int position = 0; position < tokens.size(); position++) {
 
-			long iterationStart = System.currentTimeMillis();
+                int topic = random.nextInt(numTopics);
+                tokensPerTopic.adjustOrPutValue(topic, 1, 1);
+                topics[position] = topic;
 
-			// Loop over every document in the corpus
-			for (int doc = 0; doc < data.size(); doc++) {
-				FeatureSequence tokenSequence =
-					(FeatureSequence) data.get(doc).instance.getData();
-				LabelSequence topicSequence =
-					(LabelSequence) data.get(doc).topicSequence;
+                // Keep track of the number of docs with at least one token
+                //  in a given topic.
+                if (!topicCounts.containsKey(topic)) {
+                    docsPerTopic.adjustOrPutValue(topic, 1, 1);
+                    totalDocTopics++;
+                    topicCounts.put(topic, 1);
+                } else {
+                    topicCounts.adjustValue(topic, 1);
+                }
 
-				sampleTopicsForOneDoc (tokenSequence, topicSequence);
-			}
-		
+                int type = tokens.getIndexAtPosition(position);
+                typeTopicCounts[type].adjustOrPutValue(topic, 1, 1);
+            }
+
+            TopicAssignment t = new TopicAssignment(instance, topicSequence);
+            data.add(t);
+        }
+
+        maxTopic = numTopics - 1;
+
+    }
+
+    public void sample(int iterations) throws IOException {
+
+        for (int iteration = 1; iteration <= iterations; iteration++) {
+
+            long iterationStart = System.currentTimeMillis();
+
+            // Loop over every document in the corpus
+            for (int doc = 0; doc < data.size(); doc++) {
+                FeatureSequence tokenSequence =
+                        (FeatureSequence) data.get(doc).instance.getData();
+                LabelSequence topicSequence =
+                        (LabelSequence) data.get(doc).topicSequence;
+
+                sampleTopicsForOneDoc(tokenSequence, topicSequence);
+            }
+
             long elapsedMillis = System.currentTimeMillis() - iterationStart;
-			logger.info(iteration + "\t" + elapsedMillis + "ms\t" + numTopics);
+            logger.info(iteration + "\t" + elapsedMillis + "ms\t" + numTopics);
 
-			// Occasionally print more information
-			if (showTopicsInterval != 0 && iteration % showTopicsInterval == 0) {
-				logger.info("<" + iteration + "> #Topics: " + numTopics + "\n" +
-							topWords (wordsPerTopic));
-			}
+            // Occasionally print more information
+            if (showTopicsInterval != 0 && iteration % showTopicsInterval == 0) {
+                logger.info("<" + iteration + "> #Topics: " + numTopics + "\n" +
+                        topWords(wordsPerTopic));
+            }
 
-		}
-	}
-	
-	protected void sampleTopicsForOneDoc (FeatureSequence tokenSequence,
-										  FeatureSequence topicSequence) {
+        }
+    }
 
-		int[] topics = topicSequence.getFeatures();
+    //
+    // Methods for displaying and saving results
+    //
 
-		TIntIntHashMap currentTypeTopicCounts;
-		int type, oldTopic, newTopic;
-		double topicWeightsSum;
-		int docLength = tokenSequence.getLength();
+    protected void sampleTopicsForOneDoc(FeatureSequence tokenSequence,
+                                         FeatureSequence topicSequence) {
 
-		TIntIntHashMap localTopicCounts = new TIntIntHashMap();
+        int[] topics = topicSequence.getFeatures();
 
-		//		populate topic counts
-		for (int position = 0; position < docLength; position++) {
-			localTopicCounts.adjustOrPutValue(topics[position], 1, 1);
-		}
+        TIntIntHashMap currentTypeTopicCounts;
+        int type, oldTopic, newTopic;
+        double topicWeightsSum;
+        int docLength = tokenSequence.getLength();
 
-		double score, sum;
-		double[] topicTermScores = new double[numTopics + 1];
+        TIntIntHashMap localTopicCounts = new TIntIntHashMap();
 
-		// Store a list of all the topics that currently exist.
-		int[] allTopics = docsPerTopic.keys();
-			
-		//	Iterate over the positions (words) in the document 
-		for (int position = 0; position < docLength; position++) {
-			type = tokenSequence.getIndexAtPosition(position);
-			oldTopic = topics[position];
+        //		populate topic counts
+        for (int position = 0; position < docLength; position++) {
+            localTopicCounts.adjustOrPutValue(topics[position], 1, 1);
+        }
 
-			// Grab the relevant row from our two-dimensional array
-			currentTypeTopicCounts = typeTopicCounts[type];
+        double score, sum;
+        double[] topicTermScores = new double[numTopics + 1];
 
-			//	Remove this token from all counts. 
-			
-			int currentCount = localTopicCounts.get(oldTopic);
+        // Store a list of all the topics that currently exist.
+        int[] allTopics = docsPerTopic.keys();
 
-			// Was this the only token of this topic in the doc?
-			if (currentCount == 1) {
-				localTopicCounts.remove(oldTopic);
-				
-				// Was this the only doc with this topic?
-				int docCount = docsPerTopic.get(oldTopic);
-				if (docCount == 1) {
-					// This should be the very last token
-					assert(tokensPerTopic.get(oldTopic) == 1);
-					
-					// Get rid of the topic
-					docsPerTopic.remove(oldTopic);
-					totalDocTopics--;
-					tokensPerTopic.remove(oldTopic);
-					numTopics--;
+        //	Iterate over the positions (words) in the document
+        for (int position = 0; position < docLength; position++) {
+            type = tokenSequence.getIndexAtPosition(position);
+            oldTopic = topics[position];
 
-					allTopics = docsPerTopic.keys();
-					topicTermScores = new double[numTopics + 1];
-				}
-				else {
-					// This is the last in the doc, but the topic still exists
-					docsPerTopic.adjustValue(oldTopic, -1);
-					totalDocTopics--;
-					tokensPerTopic.adjustValue(oldTopic, -1);
-				}
-			}
-			else {
-				// There is at least one other token in this doc
-				//  with this topic.
-				localTopicCounts.adjustValue(oldTopic, -1);
-				tokensPerTopic.adjustValue(oldTopic, -1);
-			}
+            // Grab the relevant row from our two-dimensional array
+            currentTypeTopicCounts = typeTopicCounts[type];
 
-			if (currentTypeTopicCounts.get(oldTopic) == 1) {
-				currentTypeTopicCounts.remove(oldTopic);
-			}
-			else {
-				currentTypeTopicCounts.adjustValue(oldTopic, -1);
-			}
+            //	Remove this token from all counts.
 
-			// Now calculate and add up the scores for each topic for this word
-			sum = 0.0;
+            int currentCount = localTopicCounts.get(oldTopic);
 
-			// First do the topics that currently exist
-			for (int i = 0; i < numTopics; i++) {
-				int topic = allTopics[i];
+            // Was this the only token of this topic in the doc?
+            if (currentCount == 1) {
+                localTopicCounts.remove(oldTopic);
 
-				topicTermScores[i] =
-					(localTopicCounts.get(topic) + 
-					 alpha * (docsPerTopic.get(topic) / 
-							  (totalDocTopics + gamma))) *
-					(currentTypeTopicCounts.get(topic) + beta) /
-					(tokensPerTopic.get(topic) + betaSum);
+                // Was this the only doc with this topic?
+                int docCount = docsPerTopic.get(oldTopic);
+                if (docCount == 1) {
+                    // This should be the very last token
+                    assert (tokensPerTopic.get(oldTopic) == 1);
 
-				sum += topicTermScores[i];
-			}
+                    // Get rid of the topic
+                    docsPerTopic.remove(oldTopic);
+                    totalDocTopics--;
+                    tokensPerTopic.remove(oldTopic);
+                    numTopics--;
 
-			// Add the weight for a new topic
-			topicTermScores[numTopics] =
-				alpha * gamma / ( numTypes * (totalDocTopics + gamma) );
-			
-			sum += topicTermScores[numTopics];
+                    allTopics = docsPerTopic.keys();
+                    topicTermScores = new double[numTopics + 1];
+                } else {
+                    // This is the last in the doc, but the topic still exists
+                    docsPerTopic.adjustValue(oldTopic, -1);
+                    totalDocTopics--;
+                    tokensPerTopic.adjustValue(oldTopic, -1);
+                }
+            } else {
+                // There is at least one other token in this doc
+                //  with this topic.
+                localTopicCounts.adjustValue(oldTopic, -1);
+                tokensPerTopic.adjustValue(oldTopic, -1);
+            }
 
-			// Choose a random point between 0 and the sum of all topic scores
-			double sample = random.nextUniform() * sum;
+            if (currentTypeTopicCounts.get(oldTopic) == 1) {
+                currentTypeTopicCounts.remove(oldTopic);
+            } else {
+                currentTypeTopicCounts.adjustValue(oldTopic, -1);
+            }
 
-			// Figure out which topic contains that point
-			newTopic = -1;
-			
-			int i = -1;
-			while (sample > 0.0) {
-				i++;
-				sample -= topicTermScores[i];
-			}
+            // Now calculate and add up the scores for each topic for this word
+            sum = 0.0;
 
-			if (i < numTopics) {
-				newTopic = allTopics[i];
+            // First do the topics that currently exist
+            for (int i = 0; i < numTopics; i++) {
+                int topic = allTopics[i];
 
-				topics[position] = newTopic;
-				currentTypeTopicCounts.adjustOrPutValue(newTopic, 1, 1);
-				tokensPerTopic.adjustValue(newTopic, 1);
-				
-				if (localTopicCounts.containsKey(newTopic)) {
-					localTopicCounts.adjustValue(newTopic, 1);
-				}
-				else {
-					// This is not a new topic, but it is new for this doc.
-					localTopicCounts.put(newTopic, 1);
-					docsPerTopic.adjustValue(newTopic, 1);
-					totalDocTopics++;
-				}
-			}
-			else {
-				// completely new topic: first generate an ID
+                topicTermScores[i] =
+                        (localTopicCounts.get(topic) +
+                                alpha * (docsPerTopic.get(topic) /
+                                        (totalDocTopics + gamma))) *
+                                (currentTypeTopicCounts.get(topic) + beta) /
+                                (tokensPerTopic.get(topic) + betaSum);
 
-				newTopic = maxTopic + 1;
-				maxTopic = newTopic;
+                sum += topicTermScores[i];
+            }
 
-				numTopics++;
-				
-				topics[position] = newTopic;
-				localTopicCounts.put(newTopic, 1);
-				
-				docsPerTopic.put(newTopic, 1);
-				totalDocTopics++;
-				
-				currentTypeTopicCounts.put(newTopic, 1);
+            // Add the weight for a new topic
+            topicTermScores[numTopics] =
+                    alpha * gamma / (numTypes * (totalDocTopics + gamma));
+
+            sum += topicTermScores[numTopics];
+
+            // Choose a random point between 0 and the sum of all topic scores
+            double sample = random.nextUniform() * sum;
+
+            // Figure out which topic contains that point
+            newTopic = -1;
+
+            int i = -1;
+            while (sample > 0.0) {
+                i++;
+                sample -= topicTermScores[i];
+            }
+
+            if (i < numTopics) {
+                newTopic = allTopics[i];
+
+                topics[position] = newTopic;
+                currentTypeTopicCounts.adjustOrPutValue(newTopic, 1, 1);
+                tokensPerTopic.adjustValue(newTopic, 1);
+
+                if (localTopicCounts.containsKey(newTopic)) {
+                    localTopicCounts.adjustValue(newTopic, 1);
+                } else {
+                    // This is not a new topic, but it is new for this doc.
+                    localTopicCounts.put(newTopic, 1);
+                    docsPerTopic.adjustValue(newTopic, 1);
+                    totalDocTopics++;
+                }
+            } else {
+                // completely new topic: first generate an ID
+
+                newTopic = maxTopic + 1;
+                maxTopic = newTopic;
+
+                numTopics++;
+
+                topics[position] = newTopic;
+                localTopicCounts.put(newTopic, 1);
+
+                docsPerTopic.put(newTopic, 1);
+                totalDocTopics++;
+
+                currentTypeTopicCounts.put(newTopic, 1);
                 tokensPerTopic.put(newTopic, 1);
-				
-				allTopics = docsPerTopic.keys();
-			    topicTermScores = new double[numTopics + 1];
-			}
-		}
-	}
-	
-	// 
-	// Methods for displaying and saving results
-	//
 
-	public String topWords (int numWords) {
+                allTopics = docsPerTopic.keys();
+                topicTermScores = new double[numTopics + 1];
+            }
+        }
+    }
 
-		StringBuilder output = new StringBuilder();
+    public String topWords(int numWords) {
 
-		IDSorter[] sortedWords = new IDSorter[numTypes];
+        StringBuilder output = new StringBuilder();
 
-		for (int topic: docsPerTopic.keys()) {
-			for (int type = 0; type < numTypes; type++) {
-				sortedWords[type] = new IDSorter(type, typeTopicCounts[type].get(topic));
-			}
+        IDSorter[] sortedWords = new IDSorter[numTypes];
 
-			Arrays.sort(sortedWords);
-			
-			output.append(topic + "\t" + tokensPerTopic.get(topic) + "\t");
-			for (int i=0; i < numWords; i++) {
-				if (sortedWords[i].getWeight() < 1.0) {
-					break;
-				}
-				output.append(alphabet.lookupObject(sortedWords[i].getID()) + " ");
-			}
-			output.append("\n");
-		}
+        for (int topic : docsPerTopic.keys()) {
+            for (int type = 0; type < numTypes; type++) {
+                sortedWords[type] = new IDSorter(type, typeTopicCounts[type].get(topic));
+            }
 
-		return output.toString();
-	}
+            Arrays.sort(sortedWords);
 
-	public void printState (File f) throws IOException {
-		PrintStream out =
-			new PrintStream(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(f))));
-		printState(out);
-		out.close();
-	}
-	
-	public void printState (PrintStream out) {
+            output.append(topic + "\t" + tokensPerTopic.get(topic) + "\t");
+            for (int i = 0; i < numWords; i++) {
+                if (sortedWords[i].getWeight() < 1.0) {
+                    break;
+                }
+                output.append(alphabet.lookupObject(sortedWords[i].getID()) + " ");
+            }
+            output.append("\n");
+        }
 
-		out.println ("#doc source pos typeindex type topic");
+        return output.toString();
+    }
 
-		for (int doc = 0; doc < data.size(); doc++) {
-			FeatureSequence tokenSequence =	(FeatureSequence) data.get(doc).instance.getData();
-			LabelSequence topicSequence =	(LabelSequence) data.get(doc).topicSequence;
+    public void printState(File f) throws IOException {
+        PrintStream out =
+                new PrintStream(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(f))));
+        printState(out);
+        out.close();
+    }
 
-			String source = "NA";
-			if (data.get(doc).instance.getSource() != null) {
-				source = data.get(doc).instance.getSource().toString();
-			}
+    public void printState(PrintStream out) {
 
-			for (int position = 0; position < topicSequence.getLength(); position++) {
-				int type = tokenSequence.getIndexAtPosition(position);
-				int topic = topicSequence.getIndexAtPosition(position);
-				out.print(doc); out.print(' ');
-				out.print(source); out.print(' '); 
-				out.print(position); out.print(' ');
-				out.print(type); out.print(' ');
-				out.print(alphabet.lookupObject(type)); out.print(' ');
-				out.print(topic); out.println();
-			}
-		}
-	}
-	
-	public static void main (String[] args) throws IOException {
+        out.println("#doc source pos typeindex type topic");
 
-		InstanceList training = InstanceList.load (new File(args[0]));
+        for (int doc = 0; doc < data.size(); doc++) {
+            FeatureSequence tokenSequence = (FeatureSequence) data.get(doc).instance.getData();
+            LabelSequence topicSequence = (LabelSequence) data.get(doc).topicSequence;
 
-		int numTopics = args.length > 1 ? Integer.parseInt(args[1]) : 200;
+            String source = "NA";
+            if (data.get(doc).instance.getSource() != null) {
+                source = data.get(doc).instance.getSource().toString();
+            }
 
-		NPTopicModel lda = new NPTopicModel (5.0, 10.0, 0.1);
-		lda.addInstances(training, numTopics);
-		lda.sample(1000);
-	}
-	
+            for (int position = 0; position < topicSequence.getLength(); position++) {
+                int type = tokenSequence.getIndexAtPosition(position);
+                int topic = topicSequence.getIndexAtPosition(position);
+                out.print(doc);
+                out.print(' ');
+                out.print(source);
+                out.print(' ');
+                out.print(position);
+                out.print(' ');
+                out.print(type);
+                out.print(' ');
+                out.print(alphabet.lookupObject(type));
+                out.print(' ');
+                out.print(topic);
+                out.println();
+            }
+        }
+    }
+
 }

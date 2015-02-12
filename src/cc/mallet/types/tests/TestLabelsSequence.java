@@ -6,14 +6,15 @@
    information, see the file `LICENSE' included with this distribution. */
 package cc.mallet.types.tests;
 
-import junit.framework.*;
-
-import java.io.IOException;
-
 import cc.mallet.types.Label;
 import cc.mallet.types.LabelAlphabet;
 import cc.mallet.types.Labels;
 import cc.mallet.types.LabelsSequence;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
+import java.io.IOException;
 
 /**
  * Created: Sep 21, 2004
@@ -23,47 +24,43 @@ import cc.mallet.types.LabelsSequence;
  */
 public class TestLabelsSequence extends TestCase {
 
-  public TestLabelsSequence (String name)
-  {
-    super (name);
-  }
-
-  public void testSerializable () throws IOException, ClassNotFoundException
-  {
-    LabelAlphabet dict = new LabelAlphabet ();
-    Labels lbls1 = new Labels (new Label[] {
-      dict.lookupLabel ("A"),
-      dict.lookupLabel ("B"),
-    });
-    Labels lbls2 = new Labels (new Label[] {
-      dict.lookupLabel ("C"),
-      dict.lookupLabel ("A"),
-    });
-    LabelsSequence lblseq  = new LabelsSequence (new Labels[] { lbls1, lbls2 });
-    LabelsSequence lblseq2 = (LabelsSequence) TestSerializable.cloneViaSerialization (lblseq);
-    assertEquals (lblseq.size(), lblseq2.size());
-    assertEquals (lblseq.getLabels(0).toString(), lblseq2.getLabels(0).toString ());
-    assertEquals (lblseq.getLabels(1).toString(), lblseq2.getLabels(1).toString ());
-  }
-  
-  public static Test suite ()
-  {
-    return new TestSuite (TestLabelsSequence.class);
-  }
-
-  public static void main (String[] args) throws Throwable
-  {
-    TestSuite theSuite;
-    if (args.length > 0) {
-      theSuite = new TestSuite ();
-      for (int i = 0; i < args.length; i++) {
-        theSuite.addTest (new TestLabelsSequence (args[i]));
-      }
-    } else {
-      theSuite = (TestSuite) suite ();
+    public TestLabelsSequence(String name) {
+        super(name);
     }
 
-    junit.textui.TestRunner.run (theSuite);
-  }
+    public static Test suite() {
+        return new TestSuite(TestLabelsSequence.class);
+    }
+
+    public static void main(String[] args) throws Throwable {
+        TestSuite theSuite;
+        if (args.length > 0) {
+            theSuite = new TestSuite();
+            for (int i = 0; i < args.length; i++) {
+                theSuite.addTest(new TestLabelsSequence(args[i]));
+            }
+        } else {
+            theSuite = (TestSuite) suite();
+        }
+
+        junit.textui.TestRunner.run(theSuite);
+    }
+
+    public void testSerializable() throws IOException, ClassNotFoundException {
+        LabelAlphabet dict = new LabelAlphabet();
+        Labels lbls1 = new Labels(new Label[]{
+                dict.lookupLabel("A"),
+                dict.lookupLabel("B"),
+        });
+        Labels lbls2 = new Labels(new Label[]{
+                dict.lookupLabel("C"),
+                dict.lookupLabel("A"),
+        });
+        LabelsSequence lblseq = new LabelsSequence(new Labels[]{lbls1, lbls2});
+        LabelsSequence lblseq2 = (LabelsSequence) TestSerializable.cloneViaSerialization(lblseq);
+        assertEquals(lblseq.size(), lblseq2.size());
+        assertEquals(lblseq.getLabels(0).toString(), lblseq2.getLabels(0).toString());
+        assertEquals(lblseq.getLabels(1).toString(), lblseq2.getLabels(1).toString());
+    }
 
 }

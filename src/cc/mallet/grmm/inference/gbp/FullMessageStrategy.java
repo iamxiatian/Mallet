@@ -7,14 +7,17 @@
 package cc.mallet.grmm.inference.gbp;
 
 
-import java.util.Iterator;
+import cc.mallet.grmm.types.DiscreteFactor;
+import cc.mallet.grmm.types.Factor;
+import cc.mallet.grmm.types.Factors;
+import cc.mallet.grmm.types.TableFactor;
 
-import cc.mallet.grmm.types.*;
+import java.util.Iterator;
 
 /**
  * A first implementation of MessageStrategy that assumes that a BP region graph
- *  is being used.
- *
+ * is being used.
+ * <p>
  * Created: May 29, 2005
  *
  * @author <A HREF="mailto:casutton@cs.umass.edu>casutton@cs.umass.edu</A>
@@ -22,39 +25,37 @@ import cc.mallet.grmm.types.*;
  */
 public class FullMessageStrategy extends AbstractMessageStrategy {
 
-  private static final boolean debug = false;
-  private static final boolean debugLite = false;
+    private static final boolean debug = false;
+    private static final boolean debugLite = false;
 
-  public FullMessageStrategy ()
-  {
-  }
-
-  public void sendMessage (RegionEdge edge)
-  {
-    if (debugLite) {
-      System.err.println ("Sending message "+edge);
+    public FullMessageStrategy() {
     }
 
-    Factor product = msgProduct (edge);
-    Region from = edge.from;
-    Region to = edge.to;
+    public void sendMessage(RegionEdge edge) {
+        if (debugLite) {
+            System.err.println("Sending message " + edge);
+        }
 
-    if (debug)
-      System.err.println ("Message "+from+" --> "+to+" after msgProduct: "+product);
+        Factor product = msgProduct(edge);
+        Region from = edge.from;
+        Region to = edge.to;
 
-    for (Iterator it = edge.factorsToSend.iterator (); it.hasNext ();) {
-      Factor ptl = (Factor) it.next ();
-      product.multiplyBy (ptl);
+        if (debug)
+            System.err.println("Message " + from + " --> " + to + " after msgProduct: " + product);
+
+        for (Iterator it = edge.factorsToSend.iterator(); it.hasNext(); ) {
+            Factor ptl = (Factor) it.next();
+            product.multiplyBy(ptl);
+        }
+
+        TableFactor result = (TableFactor) product.marginalize(to.vars);
+        result.normalize();
+
+        if (debug) {
+            System.err.println("Final message " + edge + ":" + result);
+        }
+        newMessages.setMessage(from, to, result);
     }
-
-    TableFactor result = (TableFactor) product.marginalize (to.vars);
-    result.normalize ();
-
-    if (debug) {
-      System.err.println ("Final message "+edge+":"+result);
-    }
-    newMessages.setMessage (from, to, result);
-  }
 
   /*
   static void multiplyEdgeFactors (RegionEdge edge, DiscretePotential product)
@@ -70,36 +71,33 @@ public class FullMessageStrategy extends AbstractMessageStrategy {
   }
   */
 
-  // debugging function
-  private boolean willBeNaN (Factor product, Factor otherMsg)
-  {
-    Factor p2 = product.duplicate ();
-    p2.divideBy (otherMsg);
-    return p2.isNaN ();
-  }
-
-  // debugging function
-  private boolean willBeNaN2 (Factor product, Factor otherMsg)
-  {
-    Factor p2 = product.duplicate ();
-    p2.multiplyBy (otherMsg);
-    return p2.isNaN ();
-  }
-
-  public MessageArray averageMessages (RegionGraph rg, MessageArray a1, MessageArray a2, double inertiaWeight)
-  {
-    MessageArray arr = new MessageArray (rg);
-    for (Iterator it = rg.edgeIterator (); it.hasNext ();) {
-      RegionEdge edge = (RegionEdge) it.next ();
-      DiscreteFactor msg1 = a1.getMessage (edge.from, edge.to);
-      DiscreteFactor msg2 = a2.getMessage (edge.from, edge.to);
-      if (msg1 != null) {
-        TableFactor averaged = (TableFactor) Factors.average (msg1, msg2, inertiaWeight);
-        arr.setMessage (edge.from, edge.to, averaged);
-      }
+    // debugging function
+    private boolean willBeNaN(Factor product, Factor otherMsg) {
+        Factor p2 = product.duplicate();
+        p2.divideBy(otherMsg);
+        return p2.isNaN();
     }
 
-    return arr;
-  }
+    // debugging function
+    private boolean willBeNaN2(Factor product, Factor otherMsg) {
+        Factor p2 = product.duplicate();
+        p2.multiplyBy(otherMsg);
+        return p2.isNaN();
+    }
+
+    public MessageArray averageMessages(RegionGraph rg, MessageArray a1, MessageArray a2, double inertiaWeight) {
+        MessageArray arr = new MessageArray(rg);
+        for (Iterator it = rg.edgeIterator(); it.hasNext(); ) {
+            RegionEdge edge = (RegionEdge) it.next();
+            DiscreteFactor msg1 = a1.getMessage(edge.from, edge.to);
+            DiscreteFactor msg2 = a2.getMessage(edge.from, edge.to);
+            if (msg1 != null) {
+                TableFactor averaged = (TableFactor) Factors.average(msg1, msg2, inertiaWeight);
+                arr.setMessage(edge.from, edge.to, averaged);
+            }
+        }
+
+        return arr;
+    }
 
 }

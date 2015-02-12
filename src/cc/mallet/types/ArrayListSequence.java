@@ -6,19 +6,14 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.types;
 
 import java.util.ArrayList;
 
-import cc.mallet.types.Sequence;
-
-public class ArrayListSequence<E> extends ArrayList<E> implements Sequence<E>
-{
-	private static final long serialVersionUID = 1;
+public class ArrayListSequence<E> extends ArrayList<E> implements Sequence<E> {
+    private static final long serialVersionUID = 1;
 }

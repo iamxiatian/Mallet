@@ -6,57 +6,53 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Fernando Pereira <a href="mailto:pereira@cis.upenn.edu">pereira@cis.upenn.edu</a>
+/**
+ @author Fernando Pereira <a href="mailto:pereira@cis.upenn.edu">pereira@cis.upenn.edu</a>
  */
 
 package cc.mallet.pipe.iterator;
 
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.List;
-import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import cc.mallet.pipe.Pipe;
-import cc.mallet.types.Alphabet;
 import cc.mallet.types.Instance;
-import cc.mallet.types.Label;
 
-public class ArrayDataAndTargetIterator implements Iterator<Instance>
-{
-	Iterator subIterator;
-  Iterator targetIterator;
-	int index;
-	
-	public ArrayDataAndTargetIterator (List data, List targets)
-	{
-		this.subIterator = data.iterator ();
-		this.targetIterator = targets.iterator ();
-		this.index = 0;
-	}
+import java.net.URI;
+import java.util.Iterator;
+import java.util.List;
 
-	public ArrayDataAndTargetIterator (Object[] data, Object target[])
-	{
-		this (java.util.Arrays.asList (data),	java.util.Arrays.asList (target));
-	}
+public class ArrayDataAndTargetIterator implements Iterator<Instance> {
+    Iterator subIterator;
+    Iterator targetIterator;
+    int index;
 
-	// The PipeInputIterator interface
+    public ArrayDataAndTargetIterator(List data, List targets) {
+        this.subIterator = data.iterator();
+        this.targetIterator = targets.iterator();
+        this.index = 0;
+    }
 
-	public Instance next ()
-	{
-		URI uri = null;
-		try { uri = new URI ("array:" + index++); }
-		catch (Exception e) { e.printStackTrace(); throw new IllegalStateException(); }
-		return new Instance (subIterator.next(), targetIterator.next(), uri, null);
-	}
+    public ArrayDataAndTargetIterator(Object[] data, Object target[]) {
+        this(java.util.Arrays.asList(data), java.util.Arrays.asList(target));
+    }
 
-	public boolean hasNext ()	{	return subIterator.hasNext();	}
+    // The PipeInputIterator interface
 
-	public void remove () { throw new IllegalStateException ("This iterator does not support remove().");	}
-	
+    public Instance next() {
+        URI uri = null;
+        try {
+            uri = new URI("array:" + index++);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new IllegalStateException();
+        }
+        return new Instance(subIterator.next(), targetIterator.next(), uri, null);
+    }
+
+    public boolean hasNext() {
+        return subIterator.hasNext();
+    }
+
+    public void remove() {
+        throw new IllegalStateException("This iterator does not support remove().");
+    }
+
 }
 

@@ -6,56 +6,53 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
 /**
-	 Include in the FeatureVector conjunctions of all its features.
-	 Only works with binary FeatureVectors.
-	 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+ Include in the FeatureVector conjunctions of all its features.
+ Only works with binary FeatureVectors.
+
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.pipe;
 
-import java.io.*;
-
-import cc.mallet.types.FeatureSequence;
 import cc.mallet.types.FeatureVector;
 import cc.mallet.types.Instance;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
 // This class does not insist on getting its own Alphabet because it can rely on getting
 // it from the FeatureSequence input.
+
 /**
-	 Include in the FeatureVector conjunctions of all its features.
-	 Only works with binary FeatureVectors.
-
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+ * Include in the FeatureVector conjunctions of all its features.
+ * Only works with binary FeatureVectors.
+ *
+ * @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
-public class FeatureVectorConjunctions extends Pipe implements Serializable
-{
-	public FeatureVectorConjunctions ()
-	{
-		super();
-	}
-	
-	
-	public Instance pipe (Instance carrier)
-	{
-		FeatureVector fv = (FeatureVector) carrier.getData();
-		carrier.setData(new FeatureVector (fv, fv.getAlphabet(), null, null));
-		return carrier;
-	}
+public class FeatureVectorConjunctions extends Pipe implements Serializable {
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 0;
 
-	// Serialization 
-	
-	private static final long serialVersionUID = 1;
-	private static final int CURRENT_SERIAL_VERSION = 0;
-	
-	private void writeObject (ObjectOutputStream out) throws IOException {
-		out.writeInt (CURRENT_SERIAL_VERSION);
-	}
-	
-	private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
-		int version = in.readInt ();
-	}
+    // Serialization
+
+    public FeatureVectorConjunctions() {
+        super();
+    }
+
+    public Instance pipe(Instance carrier) {
+        FeatureVector fv = (FeatureVector) carrier.getData();
+        carrier.setData(new FeatureVector(fv, fv.getAlphabet(), null, null));
+        return carrier;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(CURRENT_SERIAL_VERSION);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        int version = in.readInt();
+    }
 }

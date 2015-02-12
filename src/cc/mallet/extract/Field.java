@@ -7,12 +7,12 @@
 package cc.mallet.extract;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Iterator;
-import java.util.ListIterator;
-
 import cc.mallet.types.Label;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Created: Oct 12, 2004
@@ -22,79 +22,82 @@ import cc.mallet.types.Label;
  */
 public class Field {
 
-  private Label name;
-  private List values = new ArrayList ();
-  private List allSpans = new ArrayList ();
+    private Label name;
+    private List values = new ArrayList();
+    private List allSpans = new ArrayList();
 
 
-  public Field (LabeledSpan span)
-  {
-    name = span.getLabel ();
-    addFiller (span);
-  }
-
-
-  public Label getName ()
-  {
-    return name;
-  }
-
-
-  public int numValues () { return values.size (); }
-
-  public String value (int i) { return (String) values.get (i); }
-  public LabeledSpan span (int i) { return (LabeledSpan) allSpans.get (i); }
-
-  public void addFiller (LabeledSpan span) {
-    if (name != span.getLabel ())
-      throw new IllegalArgumentException ("Attempt to fill slot "+name+" with a span of type "+span.getLabel ());
-
-    values.add (span.getText ());
-    allSpans.add (span);
-  }
-
-  void cleanField (FieldCleaner cleaner) {
-    //??? Should I prevent the same cleaner from running twice?
-    ListIterator it = values.listIterator ();
-    while (it.hasNext()) {
-      String rawValue = (String) it.next ();
-      it.remove ();
-      it.add (cleaner.cleanFieldValue (rawValue));
+    public Field(LabeledSpan span) {
+        name = span.getLabel();
+        addFiller(span);
     }
-  }
 
-  /**
-   * Returns true if <tt>filler</tt> is an exact match to one of the values
-   *  of this field.
-   */
-  public boolean isValue (String filler)
-  {
-    return values.contains (filler);
-  }
 
-  public boolean isValue (String filler, FieldComparator comper)
-  {
-    for (Iterator it = values.iterator (); it.hasNext ();) {
-      String s = (String) it.next ();
-      if (comper.matches (filler, s))
-        return true;
+    public Label getName() {
+        return name;
     }
-    return false;
-  }
 
-  public String toString () {
-    StringBuffer buf = new StringBuffer ();
-    buf.append ("FIELD NAME: ");
-    buf.append (name);
-    buf.append ("\n");
-    for (Iterator it = values.iterator (); it.hasNext ();) {
-      String s = (String) it.next ();
-      buf.append ("FILLER:");
-      buf.append (s);
-      buf.append ("\n");
+
+    public int numValues() {
+        return values.size();
     }
-    return buf.toString ();
-  }
+
+    public String value(int i) {
+        return (String) values.get(i);
+    }
+
+    public LabeledSpan span(int i) {
+        return (LabeledSpan) allSpans.get(i);
+    }
+
+    public void addFiller(LabeledSpan span) {
+        if (name != span.getLabel())
+            throw new IllegalArgumentException("Attempt to fill slot " + name + " with a span of type " + span.getLabel());
+
+        values.add(span.getText());
+        allSpans.add(span);
+    }
+
+    void cleanField(FieldCleaner cleaner) {
+        //??? Should I prevent the same cleaner from running twice?
+        ListIterator it = values.listIterator();
+        while (it.hasNext()) {
+            String rawValue = (String) it.next();
+            it.remove();
+            it.add(cleaner.cleanFieldValue(rawValue));
+        }
+    }
+
+    /**
+     * Returns true if <tt>filler</tt> is an exact match to one of the values
+     * of this field.
+     */
+    public boolean isValue(String filler) {
+        return values.contains(filler);
+    }
+
+    public boolean isValue(String filler, FieldComparator comper) {
+        for (Iterator it = values.iterator(); it.hasNext(); ) {
+            String s = (String) it.next();
+            if (comper.matches(filler, s))
+                return true;
+        }
+        return false;
+    }
+
+    public String toString() {
+        StringBuffer buf = new StringBuffer();
+        buf.append("FIELD NAME: ");
+        buf.append(name);
+        buf.append("\n");
+        for (Iterator it = values.iterator(); it.hasNext(); ) {
+            String s = (String) it.next();
+            buf.append("FILLER:");
+            buf.append(s);
+            buf.append("\n");
+        }
+        return buf.toString();
+    }
 
 
 }

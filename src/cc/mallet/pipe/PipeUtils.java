@@ -6,8 +6,6 @@
    information, see the file `LICENSE' included with this distribution. */
 package cc.mallet.pipe;
 
-import cc.mallet.pipe.Pipe;
-import cc.mallet.pipe.SerialPipes;
 import cc.mallet.types.Alphabet;
 
 /**
@@ -18,37 +16,37 @@ import cc.mallet.types.Alphabet;
  */
 public class PipeUtils {
 
-  private PipeUtils () {}; // no instances
+    private PipeUtils() {
+    }
 
-  public static Pipe concatenatePipes (Pipe p1, Pipe p2)
-  {
-    Alphabet dataDict = combinedDataDicts (p1, p2);
-    Alphabet targetDict = combinedTargetDicts (p1, p2);
-    Pipe ret = new SerialPipes (new Pipe[] { p1, p2 });
+    ; // no instances
 
-    if (dataDict != null) ret.dataAlphabetResolved = true;
-    if (targetDict != null) ret.targetAlphabetResolved = true;
-    
-    ret.dataAlphabet = dataDict;
-    ret.targetAlphabet = targetDict;
-    return ret;
-  }
+    public static Pipe concatenatePipes(Pipe p1, Pipe p2) {
+        Alphabet dataDict = combinedDataDicts(p1, p2);
+        Alphabet targetDict = combinedTargetDicts(p1, p2);
+        Pipe ret = new SerialPipes(new Pipe[]{p1, p2});
 
-  private static Alphabet combinedDataDicts (Pipe p1, Pipe p2)
-  {
-    if (p1.dataAlphabet == null) return p2.dataAlphabet;
-    if (p2.dataAlphabet == null) return p1.dataAlphabet;
-    if (p1.dataAlphabet == p2.dataAlphabet) return p2.dataAlphabet;
-    throw new IllegalArgumentException ("Attempt to concat pipes with incompatible data dicts.");
-  }
+        if (dataDict != null) ret.dataAlphabetResolved = true;
+        if (targetDict != null) ret.targetAlphabetResolved = true;
 
-  private static Alphabet combinedTargetDicts (Pipe p1, Pipe p2)
-  {
-    if (p1.targetAlphabet == null) return p2.targetAlphabet;
-    if (p2.targetAlphabet == null) return p1.targetAlphabet;
-    if (p1.targetAlphabet == p2.targetAlphabet) return p2.targetAlphabet;
-    throw new IllegalArgumentException ("Attempt to concat pipes with incompatible target dicts.");
-  }
+        ret.dataAlphabet = dataDict;
+        ret.targetAlphabet = targetDict;
+        return ret;
+    }
+
+    private static Alphabet combinedDataDicts(Pipe p1, Pipe p2) {
+        if (p1.dataAlphabet == null) return p2.dataAlphabet;
+        if (p2.dataAlphabet == null) return p1.dataAlphabet;
+        if (p1.dataAlphabet == p2.dataAlphabet) return p2.dataAlphabet;
+        throw new IllegalArgumentException("Attempt to concat pipes with incompatible data dicts.");
+    }
+
+    private static Alphabet combinedTargetDicts(Pipe p1, Pipe p2) {
+        if (p1.targetAlphabet == null) return p2.targetAlphabet;
+        if (p2.targetAlphabet == null) return p1.targetAlphabet;
+        if (p1.targetAlphabet == p2.targetAlphabet) return p2.targetAlphabet;
+        throw new IllegalArgumentException("Attempt to concat pipes with incompatible target dicts.");
+    }
 
 
 }

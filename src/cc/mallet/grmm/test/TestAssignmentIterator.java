@@ -7,8 +7,8 @@
 package cc.mallet.grmm.test;
 
 import cc.mallet.grmm.types.*;
-import junit.framework.TestCase;
 import junit.framework.Test;
+import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 /**
@@ -19,92 +19,84 @@ import junit.framework.TestSuite;
  */
 public class TestAssignmentIterator extends TestCase {
 
-  /**
-   * Constructs a test case with the given name.
-   */
-  public TestAssignmentIterator (String name)
-  {
-    super (name);
-  }
-
-  public void testSum ()
-  {
-    Variable vars [] = {
-      new Variable (2),
-      new Variable (2),
-    };
-    double[] probs = { 0.1, 10.3, 17, 0.5 };
-    TableFactor ptl = new TableFactor (vars, probs);
-
-    AssignmentIterator it = ptl.assignmentIterator ();
-    double total = 0;
-    while (it.hasNext ()) {
-      total += ptl.value (it);
-      it.advance ();
+    /**
+     * Constructs a test case with the given name.
+     */
+    public TestAssignmentIterator(String name) {
+        super(name);
     }
 
-    assertEquals (27.9, total, 0.01);
-  }
-
-
-  public void testLazyAssignment ()
-  {
-    Variable vars [] = {
-      new Variable (2),
-      new Variable (2),
-    };
-    double[] probs = { 0.1, 10.3, 17, 0.5 };
-    TableFactor ptl = new TableFactor (vars, probs);
-
-    AssignmentIterator it = ptl.assignmentIterator ();
-    it.advance ();
-    it.advance ();
-
-    Assignment assn = it.assignment ();
-    assertEquals (2, assn.size ());   
-    assertEquals (1, assn.get (vars [0]));
-    assertEquals (0, assn.get (vars [1]));
-  }
-
-  public void testSparseMatrixN ()
-  {
-    Variable x1 = new Variable (2);
-    Variable x2 = new Variable (2);
-    Variable alpha = new Variable (Variable.CONTINUOUS);
-    
-    Factor potts = new PottsTableFactor (x1, x2, alpha);
-    Assignment alphAssn = new Assignment (alpha, 1.0);
-
-    Factor tbl = potts.slice (alphAssn);
-    System.out.println (tbl.dumpToString ());
-    
-    int j = 0;
-    double[] vals = new double[] { 0, -1, -1, 0 };
-    for (AssignmentIterator it = tbl.assignmentIterator (); it.hasNext ();) {
-      assertEquals (vals[j++], tbl.logValue (it), 1e-5);
-      it.advance ();
-    }
-  }
-  
-  public static Test suite()
-  {
-    return new TestSuite(TestAssignmentIterator.class);
-  }
-
-
-  public static void main(String[] args) throws Exception
-  {
-    TestSuite theSuite;
-    if (args.length > 0) {
-      theSuite = new TestSuite();
-      for (int i = 0; i < args.length; i++) {
-        theSuite.addTest(new TestAssignmentIterator(args[i]));
-      }
-    } else {
-      theSuite = (TestSuite) suite();
+    public static Test suite() {
+        return new TestSuite(TestAssignmentIterator.class);
     }
 
-    junit.textui.TestRunner.run(theSuite);
-  }
+    public static void main(String[] args) throws Exception {
+        TestSuite theSuite;
+        if (args.length > 0) {
+            theSuite = new TestSuite();
+            for (int i = 0; i < args.length; i++) {
+                theSuite.addTest(new TestAssignmentIterator(args[i]));
+            }
+        } else {
+            theSuite = (TestSuite) suite();
+        }
+
+        junit.textui.TestRunner.run(theSuite);
+    }
+
+    public void testSum() {
+        Variable vars[] = {
+                new Variable(2),
+                new Variable(2),
+        };
+        double[] probs = {0.1, 10.3, 17, 0.5};
+        TableFactor ptl = new TableFactor(vars, probs);
+
+        AssignmentIterator it = ptl.assignmentIterator();
+        double total = 0;
+        while (it.hasNext()) {
+            total += ptl.value(it);
+            it.advance();
+        }
+
+        assertEquals(27.9, total, 0.01);
+    }
+
+    public void testLazyAssignment() {
+        Variable vars[] = {
+                new Variable(2),
+                new Variable(2),
+        };
+        double[] probs = {0.1, 10.3, 17, 0.5};
+        TableFactor ptl = new TableFactor(vars, probs);
+
+        AssignmentIterator it = ptl.assignmentIterator();
+        it.advance();
+        it.advance();
+
+        Assignment assn = it.assignment();
+        assertEquals(2, assn.size());
+        assertEquals(1, assn.get(vars[0]));
+        assertEquals(0, assn.get(vars[1]));
+    }
+
+    public void testSparseMatrixN() {
+        Variable x1 = new Variable(2);
+        Variable x2 = new Variable(2);
+        Variable alpha = new Variable(Variable.CONTINUOUS);
+
+        Factor potts = new PottsTableFactor(x1, x2, alpha);
+        Assignment alphAssn = new Assignment(alpha, 1.0);
+
+        Factor tbl = potts.slice(alphAssn);
+        System.out.println(tbl.dumpToString());
+
+        int j = 0;
+        double[] vals = new double[]{0, -1, -1, 0};
+        for (AssignmentIterator it = tbl.assignmentIterator(); it.hasNext(); ) {
+            assertEquals(vals[j++], tbl.logValue(it), 1e-5);
+            it.advance();
+        }
+    }
 
 }

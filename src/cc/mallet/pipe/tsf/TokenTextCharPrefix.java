@@ -6,65 +6,63 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
 /**
-	 Add the token text as a feature with value 1.0.
+ Add the token text as a feature with value 1.0.
 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.pipe.tsf;
 
-import java.io.*;
+import cc.mallet.pipe.Pipe;
+import cc.mallet.types.Instance;
+import cc.mallet.types.Token;
+import cc.mallet.types.TokenSequence;
 
-import cc.mallet.pipe.*;
-import cc.mallet.types.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
-public class TokenTextCharPrefix extends Pipe implements Serializable
-{
-	String prefix;
-	int prefixLength;
+public class TokenTextCharPrefix extends Pipe implements Serializable {
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 0;
+    String prefix;
+    int prefixLength;
 
-	public TokenTextCharPrefix (String prefix, int prefixLength)
-	{
-		this.prefix=prefix;
-		this.prefixLength = prefixLength;
-	}
-	
-	public TokenTextCharPrefix ()
-	{
-		this ("PREFIX=", 2);
-	}
+    public TokenTextCharPrefix(String prefix, int prefixLength) {
+        this.prefix = prefix;
+        this.prefixLength = prefixLength;
+    }
 
-	public Instance pipe (Instance carrier)
-	{
-		TokenSequence ts = (TokenSequence) carrier.getData();
-		for (int i = 0; i < ts.size(); i++) {
-			Token t = ts.get(i);
-			String s = t.getText();
-			if (s.length() > prefixLength)
-				t.setFeatureValue ((prefix + s.substring (0, prefixLength)), 1.0);
-		}
-		return carrier;
-	}
-	
-	// Serialization 
-	
-	private static final long serialVersionUID = 1;
-	private static final int CURRENT_SERIAL_VERSION = 0;
-	
-	private void writeObject (ObjectOutputStream out) throws IOException {
-		out.writeInt (CURRENT_SERIAL_VERSION);
-		out.writeObject (prefix);
-		out.writeInt (prefixLength);
-	}
-	
-	private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
-		int version = in.readInt ();
-		prefix = (String) in.readObject();
-		prefixLength = in.readInt ();
-	}
+    // Serialization
+
+    public TokenTextCharPrefix() {
+        this("PREFIX=", 2);
+    }
+
+    public Instance pipe(Instance carrier) {
+        TokenSequence ts = (TokenSequence) carrier.getData();
+        for (int i = 0; i < ts.size(); i++) {
+            Token t = ts.get(i);
+            String s = t.getText();
+            if (s.length() > prefixLength)
+                t.setFeatureValue((prefix + s.substring(0, prefixLength)), 1.0);
+        }
+        return carrier;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(CURRENT_SERIAL_VERSION);
+        out.writeObject(prefix);
+        out.writeInt(prefixLength);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        int version = in.readInt();
+        prefix = (String) in.readObject();
+        prefixLength = in.readInt();
+    }
 
 
 }

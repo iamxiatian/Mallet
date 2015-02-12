@@ -8,30 +8,30 @@ import cc.mallet.types.InstanceList;
  */
 public interface ACRFTrainer {
 
-  boolean train (ACRF acrf, InstanceList training);
+    boolean train(ACRF acrf, InstanceList training);
 
-  boolean train (ACRF acrf, InstanceList training, int numIter);
+    boolean train(ACRF acrf, InstanceList training, int numIter);
 
-  boolean train (ACRF acrf, InstanceList training, ACRFEvaluator eval, int numIter);
+    boolean train(ACRF acrf, InstanceList training, ACRFEvaluator eval, int numIter);
 
-  boolean train (ACRF acrf,
-                 InstanceList training,
-                 InstanceList validation,
-                 InstanceList testing,
-                 int numIter);
+    boolean train(ACRF acrf,
+                  InstanceList training,
+                  InstanceList validation,
+                  InstanceList testing,
+                  int numIter);
 
-  boolean train (ACRF acrf,
-                 InstanceList training,
-                 InstanceList validation,
-                 InstanceList testing,
-                 ACRFEvaluator eval,
-                 int numIter);
+    boolean train(ACRF acrf,
+                  InstanceList training,
+                  InstanceList validation,
+                  InstanceList testing,
+                  ACRFEvaluator eval,
+                  int numIter);
 
-  boolean train (ACRF acrf,
-                 InstanceList training,
-                 InstanceList validation,
-                 InstanceList testing,
-                 ACRFEvaluator eval,
-                 int numIter,
-                 Optimizable.ByGradientValue macrf);
+    boolean train(ACRF acrf,
+                  InstanceList training,
+                  InstanceList validation,
+                  InstanceList testing,
+                  ACRFEvaluator eval,
+                  int numIter,
+                  Optimizable.ByGradientValue macrf);
 }

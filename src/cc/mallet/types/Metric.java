@@ -6,17 +6,14 @@
    information, see the file `LICENSE' included with this distribution. */
 
 /** Interface for a measure of distance between two <CODE>SparseVector</CODE>s
-    @author Jerod Weinman <A HREF="mailto:weinman@cs.umass.edu">weinman@cs.umass.edu</A>
-*/
+ @author Jerod Weinman <A HREF="mailto:weinman@cs.umass.edu">weinman@cs.umass.edu</A>
+ */
 
 package cc.mallet.types;
 
-import cc.mallet.types.SparseVector;
-
-
 public interface Metric {
 
-    public double distance( SparseVector a, SparseVector b);
+    public double distance(SparseVector a, SparseVector b);
 
 }
 

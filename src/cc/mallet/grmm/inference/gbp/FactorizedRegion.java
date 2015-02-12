@@ -7,21 +7,20 @@
 package cc.mallet.grmm.inference.gbp;
 
 
-import java.util.List;
-import java.util.Iterator;
-import java.util.Collection;
-import java.util.Set;
-
 import cc.mallet.grmm.types.Factor;
 import cc.mallet.grmm.types.FactorGraph;
 import cc.mallet.grmm.types.Variable;
+import gnu.trove.set.hash.THashSet;
 
-import gnu.trove.THashSet;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A more space-efficient Region class that doesn't maintain a global factor
- *  over all assignments to the region.
- * 
+ * over all assignments to the region.
+ * <p>
  * Created: Jun 3, 2005
  *
  * @author <A HREF="mailto:casutton@cs.umass.edu>casutton@cs.umass.edu</A>
@@ -29,26 +28,24 @@ import gnu.trove.THashSet;
  */
 public class FactorizedRegion extends Region {
 
-  FactorGraph subMdl;
+    FactorGraph subMdl;
 
-  public FactorizedRegion (List factors)
-  {
-    super (varsForFactors (factors), factors);
-    subMdl = new FactorGraph ((Variable[]) vars.toArray (new Variable[0]));
-    for (Iterator it = factors.iterator (); it.hasNext ();) {
-      Factor factor = (Factor) it.next ();
-      subMdl.addFactor (factor);
+    public FactorizedRegion(List factors) {
+        super(varsForFactors(factors), factors);
+        subMdl = new FactorGraph((Variable[]) vars.toArray(new Variable[0]));
+        for (Iterator it = factors.iterator(); it.hasNext(); ) {
+            Factor factor = (Factor) it.next();
+            subMdl.addFactor(factor);
+        }
     }
-  }
 
-  private static Collection varsForFactors (List factors)
-  {
-    Set vars = new THashSet ();
-    for (Iterator it = factors.iterator (); it.hasNext ();) {
-      Factor ptl = (Factor) it.next ();
-      vars.addAll (ptl.varSet ());
+    private static Collection varsForFactors(List factors) {
+        Set vars = new THashSet();
+        for (Iterator it = factors.iterator(); it.hasNext(); ) {
+            Factor ptl = (Factor) it.next();
+            vars.addAll(ptl.varSet());
+        }
+        return vars;
     }
-    return vars;
-  }
 
 }

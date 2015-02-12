@@ -7,7 +7,6 @@
 package cc.mallet.extract;
 
 import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 
 /**
  * Created: Nov 23, 2004
@@ -17,23 +16,20 @@ import java.util.regex.Matcher;
  */
 public class PunctuationIgnoringComparator implements FieldComparator {
 
-  private Pattern punctuationPattern = Pattern.compile ("\\p{Punct}*$");
+    private Pattern punctuationPattern = Pattern.compile("\\p{Punct}*$");
 
-  public void setPunctuationPattern (Pattern punctuationPattern)
-  {
-    this.punctuationPattern = punctuationPattern;
-  }
+    public void setPunctuationPattern(Pattern punctuationPattern) {
+        this.punctuationPattern = punctuationPattern;
+    }
 
-  public boolean matches (String fieldVal1, String fieldVal2)
-  {
-    String trim1 = doTrim (fieldVal1);
-    String trim2 = doTrim (fieldVal2);
-    return trim1.equals (trim2);
-  }
+    public boolean matches(String fieldVal1, String fieldVal2) {
+        String trim1 = doTrim(fieldVal1);
+        String trim2 = doTrim(fieldVal2);
+        return trim1.equals(trim2);
+    }
 
-  private String doTrim (String str)
-  {
-    return punctuationPattern.matcher (str).replaceAll ("");
-  }
+    private String doTrim(String str) {
+        return punctuationPattern.matcher(str).replaceAll("");
+    }
 
 }

@@ -6,7 +6,15 @@
    information, see the file `LICENSE' included with this distribution. */
 package cc.mallet.grmm.learning.templates;
 
-import gnu.trove.THashMap;
+import cc.mallet.grmm.learning.ACRF;
+import cc.mallet.grmm.types.Variable;
+import cc.mallet.grmm.util.LabelsAssignment;
+import cc.mallet.grmm.util.THashMultiMap;
+import cc.mallet.types.Alphabet;
+import cc.mallet.types.AugmentableFeatureVector;
+import cc.mallet.types.FeatureVector;
+import cc.mallet.types.FeatureVectorSequence;
+import gnu.trove.map.hash.THashMap;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -14,14 +22,8 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-
-import cc.mallet.grmm.learning.ACRF;
-import cc.mallet.grmm.types.Variable;
-import cc.mallet.grmm.util.LabelsAssignment;
-import cc.mallet.grmm.util.THashMultiMap;
-import cc.mallet.types.*;
+import java.util.regex.Pattern;
 
 
 /**
@@ -33,282 +35,256 @@ import cc.mallet.types.*;
 // Copied from TUIacrf
 public class SimilarTokensTemplate extends ACRF.SequenceTemplate {
 
-  private static final boolean debug = false;
+    private static final boolean debug = false;
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 2;
+    private int factor;
+    private boolean distinguishEndpts = false;
+    private boolean wordFeaturesOnly = false;
+    private boolean excludeAdjacent = true;
+    private FeatureVectorBinner binner;
+    // Maps FeatureVectorSequence ==> THashMultiMap<String,TokenInfo>
+    private transient THashMap instanceCache = new THashMap();
 
-  private static class TokenInfo {
-
-    String featureName;
-    FeatureVector fv;
-    int pos;
-
-    public TokenInfo (String featureName, FeatureVector fv, int pos)
-    {
-      this.featureName = featureName;
-      this.fv = fv;
-      this.pos = pos;
+    public SimilarTokensTemplate(int factor) {
+        this(factor, false);
     }
-  }
 
-  private int factor;
-  private boolean distinguishEndpts = false;
-  private boolean wordFeaturesOnly = false;
-  private boolean excludeAdjacent = true;
+    public SimilarTokensTemplate(int factor, boolean distinguishEndpoints) {
+        this(factor, distinguishEndpoints, false, new CapWordsBinner());
+    }
 
-  private FeatureVectorBinner binner;
+    public SimilarTokensTemplate(int factor, boolean distinguishEndpoints, boolean wordFeaturesOnly) {
+        this(factor, distinguishEndpoints, wordFeaturesOnly, new CapWordsBinner());
+    }
 
-  // Maps FeatureVectorSequence ==> THashMultiMap<String,TokenInfo>
-  private transient THashMap instanceCache = new THashMap ();
+    public SimilarTokensTemplate(int factor, boolean distinguishEndpoints, FeatureVectorBinner binner) {
+        this(factor, distinguishEndpoints, false, binner);
+    }
 
+    public SimilarTokensTemplate(int factor, boolean distinguishEndpoints, boolean wordFeaturesOnly, FeatureVectorBinner binner) {
+        this.factor = factor;
+        this.distinguishEndpts = distinguishEndpoints;
+        this.wordFeaturesOnly = wordFeaturesOnly;
+        this.binner = binner;
+    }
 
-  public SimilarTokensTemplate (int factor)
-  {
-    this (factor, false);
-  }
+    public void addInstantiatedCliques(ACRF.UnrolledGraph graph,
+                                       FeatureVectorSequence fvs,
+                                       LabelsAssignment lblseq) {
+        THashMultiMap fvByWord = constructFvByWord(fvs);
 
-  public SimilarTokensTemplate (int factor, boolean distinguishEndpoints)
-  {
-    this (factor, distinguishEndpoints, false, new CapWordsBinner ());
-  }
+        int numSkip = 0;
 
-  public SimilarTokensTemplate (int factor, boolean distinguishEndpoints, boolean wordFeaturesOnly)
-  {
-    this (factor, distinguishEndpoints, wordFeaturesOnly, new CapWordsBinner ());
-  }
+        for (Iterator it = fvByWord.keySet().iterator(); it.hasNext(); ) {
+            String wordFeature = (String) it.next();
+            List infoList = (List) fvByWord.get(wordFeature);
+            int N = infoList.size();
 
-  public SimilarTokensTemplate (int factor, boolean distinguishEndpoints, FeatureVectorBinner binner)
-  {
-    this (factor, distinguishEndpoints, false, binner);
-  }
+            if (debug && N > 1)
+                System.err.print("Processing list of size " + N + " (" + wordFeature + ")");
 
-  public SimilarTokensTemplate (int factor, boolean distinguishEndpoints, boolean wordFeaturesOnly, FeatureVectorBinner binner)
-  {
-    this.factor = factor;
-    this.distinguishEndpts = distinguishEndpoints;
-    this.wordFeaturesOnly = wordFeaturesOnly;
-    this.binner = binner;
-  }
+            for (int i = 0; i < N; i++) {
+                for (int j = i + 1; j < N; j++) {
 
-  public void addInstantiatedCliques (ACRF.UnrolledGraph graph,
-                                      FeatureVectorSequence fvs,
-                                      LabelsAssignment lblseq)
-  {
-    THashMultiMap fvByWord = constructFvByWord (fvs);
+                    TokenInfo info1 = (TokenInfo) infoList.get(i);
+                    TokenInfo info2 = (TokenInfo) infoList.get(j);
 
-    int numSkip = 0;
+                    Variable v1 = lblseq.varOfIndex(info1.pos, factor);
+                    Variable v2 = lblseq.varOfIndex(info2.pos, factor);
 
-    for (Iterator it = fvByWord.keySet ().iterator (); it.hasNext ();) {
-      String wordFeature = (String) it.next ();
-      List infoList = (List) fvByWord.get (wordFeature);
-      int N = infoList.size ();
+                    if (excludeAdjacent && (Math.abs(info1.pos - info2.pos) <= 1))
+                        continue;
 
-      if (debug && N > 1) System.err.print ("Processing list of size "+N+" ("+wordFeature+")");
+                    Variable[] vars = new Variable[]{v1, v2};
+                    assert v1 != null : "Couldn't get label factor " + factor + " time " + i;
+                    assert v2 != null : "Couldn't get label factor " + factor + " time " + j;
 
-      for (int i = 0; i < N; i++) {
-        for (int j = i + 1; j < N; j++) {
-
-          TokenInfo info1 = (TokenInfo) infoList.get (i);
-          TokenInfo info2 = (TokenInfo) infoList.get (j);
-
-          Variable v1 = lblseq.varOfIndex (info1.pos, factor);
-          Variable v2 = lblseq.varOfIndex (info2.pos, factor);
-
-          if (excludeAdjacent && (Math.abs(info1.pos - info2.pos) <= 1)) continue;
-
-          Variable[] vars = new Variable[]{v1, v2};
-          assert v1 != null : "Couldn't get label factor " + factor + " time " + i;
-          assert v2 != null : "Couldn't get label factor " + factor + " time " + j;
-
-          FeatureVector fv = combineFv (wordFeature, info1.fv, info2.fv);
-          ACRF.UnrolledVarSet clique = new ACRF.UnrolledVarSet (graph, this, vars, fv);
-          graph.addClique (clique);
-          numSkip++;
+                    FeatureVector fv = combineFv(wordFeature, info1.fv, info2.fv);
+                    ACRF.UnrolledVarSet clique = new ACRF.UnrolledVarSet(graph, this, vars, fv);
+                    graph.addClique(clique);
+                    numSkip++;
 
 //          System.out.println ("Adding "+info1.pos+" --- "+info2.pos);
-          
+
           /* Insanely verbose
           if (debug) {
             System.err.println ("Combining:\n   "+info1.fv+"\n   "+info2.fv);
           }
           */
+                }
+            }
+            if (debug && N > 1) System.err.println("...done.");
         }
-      }
-      if (debug && N > 1) System.err.println ("...done.");
+
+        System.err.println("SimilarTokensTemplate: Total skip edges = " + numSkip);
     }
 
-    System.err.println ("SimilarTokensTemplate: Total skip edges = "+numSkip);
-  }
-
-  private THashMultiMap constructFvByWord (FeatureVectorSequence fvs)
-  {
-    THashMultiMap fvByWord = new THashMultiMap (fvs.size ());
-    int N = fvs.size ();
-    for (int t = 0; t < N; t++) {
-      FeatureVector fv = fvs.getFeatureVector (t);
-      String wordFeature = binner.computeBin (fv);
-      if (wordFeature != null) {  // could happen if the current word has been excluded
-        fvByWord.put (wordFeature, new TokenInfo (wordFeature, fv, t));
-      }
+    private THashMultiMap constructFvByWord(FeatureVectorSequence fvs) {
+        THashMultiMap fvByWord = new THashMultiMap(fvs.size());
+        int N = fvs.size();
+        for (int t = 0; t < N; t++) {
+            FeatureVector fv = fvs.getFeatureVector(t);
+            String wordFeature = binner.computeBin(fv);
+            if (wordFeature != null) {  // could happen if the current word has been excluded
+                fvByWord.put(wordFeature, new TokenInfo(wordFeature, fv, t));
+            }
+        }
+        return fvByWord;
     }
-    return fvByWord;
-  }
 
-  private FeatureVector combineFv (String word, FeatureVector fv1, FeatureVector fv2)
-  {
+    // Customization
+
+    private FeatureVector combineFv(String word, FeatureVector fv1, FeatureVector fv2) {
 // 			System.out.println("combineFv:");
 // 			System.out.println("FV1 values "+fv1.getValues()+" indices "+fv1.getIndices());
 // 			System.out.println("FV1: "+fv1.toString (true));
 // 			System.out.println("FV2 values "+fv2.getValues()+" indices "+fv2.getIndices());
 // 			System.out.println("FV2:"+fv2.toString (true));
-    Alphabet dict = fv1.getAlphabet ();
-    AugmentableFeatureVector afv = new AugmentableFeatureVector (dict, true);
-    if (wordFeaturesOnly) {
-      int idx = dict.lookupIndex (word);
-      afv.add (idx, 1.0);
-    } else if (distinguishEndpts) {
-      afv.add (fv1, "S:");
-      afv.add (fv2, "E:");
-    } else {
-      afv.add (fv1);
-      afv.add (fv2);
-    }
+        Alphabet dict = fv1.getAlphabet();
+        AugmentableFeatureVector afv = new AugmentableFeatureVector(dict, true);
+        if (wordFeaturesOnly) {
+            int idx = dict.lookupIndex(word);
+            afv.add(idx, 1.0);
+        } else if (distinguishEndpts) {
+            afv.add(fv1, "S:");
+            afv.add(fv2, "E:");
+        } else {
+            afv.add(fv1);
+            afv.add(fv2);
+        }
 
 //			System.out.println("AFV: "+afv.toString (true));
-    return afv;
-  }
-
-  // Customization
-
-  /** Interface for classes that ssigns each features vector to a String-valued bin.
-   *   Feature vectors is the same bin are assumed to be similar, so that they need a skip edge.
-   *   In this way the similarity metric used for generating skip edges can be completely customized.
-   */
-  public static interface FeatureVectorBinner {
-    String computeBin (FeatureVector fv);
-  }
-
-  public static class WordFeatureBinner implements FeatureVectorBinner, Serializable {
-
-    private Pattern findWordPtn1 = Pattern.compile("WORD=(.*)");
-    private Pattern findWordPtn2 = Pattern.compile("W=(.*)");
-    private Pattern findWordExcludePtn = Pattern.compile (".*(?:@-?\\d+|_&_).*");
-
-    private Pattern wordIncludePattern = null;
-
-    public WordFeatureBinner () { }
-
-    public WordFeatureBinner (Pattern wordIncludePattern)
-    {
-      this.wordIncludePattern = wordIncludePattern;
+        return afv;
     }
 
-    public String computeBin (FeatureVector fv)
-    {
-      String text = intuitTokenText (fv);
-      if (text != null) {
-        if (wordIncludePattern == null || wordIncludePattern.matcher(text).matches ()) {
-          return text;
-        }
-      }
-
-      return null;
+    public void setBinner(FeatureVectorBinner binner) {
+        this.binner = binner;
     }
 
-    private String intuitTokenText (FeatureVector fv)
-    {
-      Alphabet dict = fv.getAlphabet ();
-      for (int loc = 0; loc < fv.numLocations (); loc++) {
-        int idx = fv.indexAtLocation (loc);
-        String fname = String.valueOf (dict.lookupObject (idx));
+    public boolean isExcludeAdjacent() {
+        return excludeAdjacent;
+    }
 
-        Matcher matcher;
-        if ((matcher = findWordPtn1.matcher (fname)).matches ()) {
-          if (!findWordExcludePtn.matcher (fname).matches ()) {
-            return matcher.group (1);
-          }
-        } else if ((findWordPtn2 != null) && (matcher = findWordPtn2.matcher (fname)).matches ()) {
-          if (!findWordExcludePtn.matcher (fname).matches ()) {
-            return matcher.group (1);
-          }
-        }
-      }
+    public void setExcludeAdjacent(boolean excludeAdjacent) {
+        this.excludeAdjacent = excludeAdjacent;
+    }
 
-      return null;
+    public boolean isDistinguishEndpts() {
+        return distinguishEndpts;
+    }
+
+    public void setDistinguishEndpts(boolean distinguishEndpts) {
+        this.distinguishEndpts = distinguishEndpts;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeInt(CURRENT_SERIAL_VERSION);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        int version = in.readInt();
+        instanceCache = new THashMap();
     }
 
     // Serialization garbage
 
-    private static final long serialVersionUID = 1;
-    private static final int CURRENT_SERIAL_VERSION = 2;
-
-    private void writeObject (ObjectOutputStream out) throws IOException
-    {
-      out.defaultWriteObject ();
-      out.writeInt (CURRENT_SERIAL_VERSION);
+    /**
+     * Interface for classes that ssigns each features vector to a String-valued bin.
+     * Feature vectors is the same bin are assumed to be similar, so that they need a skip edge.
+     * In this way the similarity metric used for generating skip edges can be completely customized.
+     */
+    public static interface FeatureVectorBinner {
+        String computeBin(FeatureVector fv);
     }
 
+    private static class TokenInfo {
 
-    private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException
-    {
-      in.defaultReadObject ();
-      int version = in.readInt ();
-      if (version == 1) {
-        throw new RuntimeException ();
-      }
+        String featureName;
+        FeatureVector fv;
+        int pos;
+
+        public TokenInfo(String featureName, FeatureVector fv, int pos) {
+            this.featureName = featureName;
+            this.fv = fv;
+            this.pos = pos;
+        }
     }
 
-  }
+    public static class WordFeatureBinner implements FeatureVectorBinner, Serializable {
 
-  public static class CapWordsBinner extends WordFeatureBinner {
+        private static final long serialVersionUID = 1;
+        private static final int CURRENT_SERIAL_VERSION = 2;
+        private Pattern findWordPtn1 = Pattern.compile("WORD=(.*)");
+        private Pattern findWordPtn2 = Pattern.compile("W=(.*)");
+        private Pattern findWordExcludePtn = Pattern.compile(".*(?:@-?\\d+|_&_).*");
+        private Pattern wordIncludePattern = null;
 
-    public CapWordsBinner ()
-    {
-      super (Pattern.compile ("[A-Z][A-Za-z]*"));
+        public WordFeatureBinner() {
+        }
+
+        public WordFeatureBinner(Pattern wordIncludePattern) {
+            this.wordIncludePattern = wordIncludePattern;
+        }
+
+        // Serialization garbage
+
+        public String computeBin(FeatureVector fv) {
+            String text = intuitTokenText(fv);
+            if (text != null) {
+                if (wordIncludePattern == null || wordIncludePattern.matcher(text).matches()) {
+                    return text;
+                }
+            }
+
+            return null;
+        }
+
+        private String intuitTokenText(FeatureVector fv) {
+            Alphabet dict = fv.getAlphabet();
+            for (int loc = 0; loc < fv.numLocations(); loc++) {
+                int idx = fv.indexAtLocation(loc);
+                String fname = String.valueOf(dict.lookupObject(idx));
+
+                Matcher matcher;
+                if ((matcher = findWordPtn1.matcher(fname)).matches()) {
+                    if (!findWordExcludePtn.matcher(fname).matches()) {
+                        return matcher.group(1);
+                    }
+                } else if ((findWordPtn2 != null) && (matcher = findWordPtn2.matcher(fname)).matches()) {
+                    if (!findWordExcludePtn.matcher(fname).matches()) {
+                        return matcher.group(1);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private void writeObject(ObjectOutputStream out) throws IOException {
+            out.defaultWriteObject();
+            out.writeInt(CURRENT_SERIAL_VERSION);
+        }
+
+
+        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+            in.defaultReadObject();
+            int version = in.readInt();
+            if (version == 1) {
+                throw new RuntimeException();
+            }
+        }
+
     }
 
-  }
+    public static class CapWordsBinner extends WordFeatureBinner {
 
-  public void setBinner (FeatureVectorBinner binner)
-  {
-    this.binner = binner;
-  }
+        public CapWordsBinner() {
+            super(Pattern.compile("[A-Z][A-Za-z]*"));
+        }
 
-  public boolean isExcludeAdjacent ()
-  {
-    return excludeAdjacent;
-  }
-
-  public void setExcludeAdjacent (boolean excludeAdjacent)
-  {
-    this.excludeAdjacent = excludeAdjacent;
-  }
-
-  public boolean isDistinguishEndpts ()
-  {
-    return distinguishEndpts;
-  }
-
-  public void setDistinguishEndpts (boolean distinguishEndpts)
-  {
-    this.distinguishEndpts = distinguishEndpts;
-  }
-
-  // Serialization garbage
-
-  private static final long serialVersionUID = 1;
-  private static final int CURRENT_SERIAL_VERSION = 2;
-
-  private void writeObject (ObjectOutputStream out) throws IOException
-  {
-    out.defaultWriteObject ();
-    out.writeInt (CURRENT_SERIAL_VERSION);
-  }
-
-
-  private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException
-  {
-    in.defaultReadObject ();
-    int version = in.readInt ();
-    instanceCache = new THashMap ();
-  }
+    }
 
 }

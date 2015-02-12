@@ -8,9 +8,8 @@ package cc.mallet.util.tests;
 
 import cc.mallet.types.MatrixOps;
 import cc.mallet.util.Randoms;
-import cc.mallet.util.Strings;
-import junit.framework.TestCase;
 import junit.framework.Test;
+import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 /**
@@ -21,44 +20,40 @@ import junit.framework.TestSuite;
  */
 public class TestRandom extends TestCase {
 
-  public TestRandom (String name)
-  {
-    super (name);
-  }
-
-  public static Test suite ()
-  {
-    return new TestSuite (TestRandom.class);
-  }
-
-  public static void testAsJava ()
-  {
-    Randoms mRand = new Randoms ();
-    java.util.Random jRand = mRand.asJavaRandom ();
-
-    int size = 10000;
-    double[] vals = new double [size];
-    for (int i = 0; i < size; i++) {
-      vals[i] = jRand.nextGaussian ();
+    public TestRandom(String name) {
+        super(name);
     }
 
-    assertEquals (0.0, MatrixOps.mean (vals), 0.01);
-    assertEquals (1.0, MatrixOps.stddev (vals), 0.01);
-  }
-
-  public static void main (String[] args) throws Throwable
-  {
-    TestSuite theSuite;
-    if (args.length > 0) {
-      theSuite = new TestSuite ();
-      for (int i = 0; i < args.length; i++) {
-        theSuite.addTest (new TestRandom (args[i]));
-      }
-    } else {
-      theSuite = (TestSuite) TestRandom.suite ();
+    public static Test suite() {
+        return new TestSuite(TestRandom.class);
     }
 
-    junit.textui.TestRunner.run (theSuite);
-  }
+    public static void testAsJava() {
+        Randoms mRand = new Randoms();
+        java.util.Random jRand = mRand.asJavaRandom();
+
+        int size = 10000;
+        double[] vals = new double[size];
+        for (int i = 0; i < size; i++) {
+            vals[i] = jRand.nextGaussian();
+        }
+
+        assertEquals(0.0, MatrixOps.mean(vals), 0.01);
+        assertEquals(1.0, MatrixOps.stddev(vals), 0.01);
+    }
+
+    public static void main(String[] args) throws Throwable {
+        TestSuite theSuite;
+        if (args.length > 0) {
+            theSuite = new TestSuite();
+            for (int i = 0; i < args.length; i++) {
+                theSuite.addTest(new TestRandom(args[i]));
+            }
+        } else {
+            theSuite = (TestSuite) TestRandom.suite();
+        }
+
+        junit.textui.TestRunner.run(theSuite);
+    }
 
 }

@@ -1,51 +1,52 @@
 package cc.mallet.pipe;
 
-import cc.mallet.types.*;
-import cc.mallet.pipe.*;
+import cc.mallet.types.Alphabet;
+import cc.mallet.types.FeatureVector;
+import cc.mallet.types.Instance;
 
 import java.io.Serializable;
 import java.util.Arrays;
 
 public class TargetStringToFeatures extends Pipe implements Serializable {
-	public TargetStringToFeatures () {
-		super(null, new Alphabet());
-	}
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 0;
 
-	public Instance pipe(Instance carrier) {
-		if (! (carrier.getTarget() instanceof String)) {
-			throw new IllegalArgumentException("Target must be of type String");
-		}
+    public TargetStringToFeatures() {
+        super(null, new Alphabet());
+    }
 
-		String featuresLine = (String) carrier.getTarget();
+    public Instance pipe(Instance carrier) {
+        if (!(carrier.getTarget() instanceof String)) {
+            throw new IllegalArgumentException("Target must be of type String");
+        }
 
-		String[] features = featuresLine.split(",?\\s+");
+        String featuresLine = (String) carrier.getTarget();
 
-		double[] values = new double[ features.length ];
-		Arrays.fill(values, 1.0);
+        String[] features = featuresLine.split(",?\\s+");
 
-		for (int i=0; i<features.length; i++) {
+        double[] values = new double[features.length];
+        Arrays.fill(values, 1.0);
 
-			// Support the syntax "FEATURE=0.000342 OTHER_FEATURE=-2.32423"                                       \
-                                                                                                                       
-			if (features[i].indexOf("=") != -1) {
-				String[] keyValuePair = features[i].split("=");
-				features[i] = keyValuePair[0];
-				values[i] = Double.parseDouble(keyValuePair[1]);
-			}
+        for (int i = 0; i < features.length; i++) {
 
-			// ensure that the feature has a spot in the alphabet                                                 \
-                                                                                                                       
-			getTargetAlphabet().lookupIndex(features[i], true);
-		}
+            // Support the syntax "FEATURE=0.000342 OTHER_FEATURE=-2.32423"                                       \
 
-		FeatureVector target = new FeatureVector(getTargetAlphabet(), features, values);
+            if (features[i].indexOf("=") != -1) {
+                String[] keyValuePair = features[i].split("=");
+                features[i] = keyValuePair[0];
+                values[i] = Double.parseDouble(keyValuePair[1]);
+            }
 
-		carrier.setTarget(target);
+            // ensure that the feature has a spot in the alphabet                                                 \
 
-		return carrier;
-	}
+            getTargetAlphabet().lookupIndex(features[i], true);
+        }
 
-	private static final long serialVersionUID = 1;
-	private static final int CURRENT_SERIAL_VERSION = 0;
+        FeatureVector target = new FeatureVector(getTargetAlphabet(), features, values);
+
+        carrier.setTarget(target);
+
+        return carrier;
+    }
 
 }

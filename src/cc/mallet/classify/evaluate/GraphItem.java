@@ -32,8 +32,8 @@
    OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
    SUCH DAMAGE. */
 
-/** 
-   @author Aron Culotta <a href="mailto:culotta@cs.umass.edu">culotta@cs.umass.edu</a>
+/**
+ @author Aron Culotta <a href="mailto:culotta@cs.umass.edu">culotta@cs.umass.edu</a>
  */
 
 package cc.mallet.classify.evaluate;
@@ -44,15 +44,15 @@ import java.awt.*;
  * Holds data for a point on a graph
  */
 public class GraphItem {
-    
+
     String title;
     int value;
     Color color;
-    
+
     public GraphItem(String title, int value, Color color) {
-	this.title = title;
-	this.value = value;
-	this.color = color;
-    } 
-    
+        this.title = title;
+        this.value = value;
+        this.color = color;
+    }
+
 } 

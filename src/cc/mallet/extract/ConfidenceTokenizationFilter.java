@@ -7,15 +7,14 @@
 package cc.mallet.extract;
 
 
-import java.io.Serializable;
-import java.io.ObjectOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-
-import cc.mallet.fst.confidence.*;
 import cc.mallet.types.Label;
 import cc.mallet.types.LabelAlphabet;
 import cc.mallet.types.Sequence;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 /**
  * Created: Oct 26, 2005
@@ -24,47 +23,43 @@ import cc.mallet.types.Sequence;
  */
 public class ConfidenceTokenizationFilter implements TokenizationFilter, Serializable {
 
-  ExtractionConfidenceEstimator confidenceEstimator;
-  TokenizationFilter underlyingFilter;
-
-  public ConfidenceTokenizationFilter (ExtractionConfidenceEstimator confidenceEstimator,
-                                       TokenizationFilter underlyingFilter) {
-    super();
-    this.confidenceEstimator = confidenceEstimator;
-    this.underlyingFilter = underlyingFilter;
-  }
-      
-  public LabeledSpans constructLabeledSpans (LabelAlphabet dict, Object document, Label backgroundTag,
-                                             Tokenization input, Sequence seq)
-  {
-    DocumentExtraction extraction = new DocumentExtraction("Extraction",
-                                                           dict,
-                                                           input,
-                                                           seq,
-                                                           null,
-                                                           backgroundTag.toString());
-
-    confidenceEstimator.estimateConfidence(extraction);
-    return extraction.getExtractedSpans();
-  }
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 1;
+    ExtractionConfidenceEstimator confidenceEstimator;
+    TokenizationFilter underlyingFilter;
 
 
-  // Serialization garbage
+    // Serialization garbage
 
-  private static final long serialVersionUID = 1;
-  private static final int CURRENT_SERIAL_VERSION = 1;
+    public ConfidenceTokenizationFilter(ExtractionConfidenceEstimator confidenceEstimator,
+                                        TokenizationFilter underlyingFilter) {
+        super();
+        this.confidenceEstimator = confidenceEstimator;
+        this.underlyingFilter = underlyingFilter;
+    }
 
-  private void writeObject (ObjectOutputStream out) throws IOException
-  {
-    out.writeInt (CURRENT_SERIAL_VERSION);
-    out.writeObject(confidenceEstimator);
-    out.writeObject(underlyingFilter);
-  }
+    public LabeledSpans constructLabeledSpans(LabelAlphabet dict, Object document, Label backgroundTag,
+                                              Tokenization input, Sequence seq) {
+        DocumentExtraction extraction = new DocumentExtraction("Extraction",
+                dict,
+                input,
+                seq,
+                null,
+                backgroundTag.toString());
 
-  private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException
-  {
-    in.readInt (); // read version
-    this.confidenceEstimator = (ExtractionConfidenceEstimator) in.readObject();
-    this.underlyingFilter = (TokenizationFilter) in.readObject();
-  }
+        confidenceEstimator.estimateConfidence(extraction);
+        return extraction.getExtractedSpans();
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(CURRENT_SERIAL_VERSION);
+        out.writeObject(confidenceEstimator);
+        out.writeObject(underlyingFilter);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.readInt(); // read version
+        this.confidenceEstimator = (ExtractionConfidenceEstimator) in.readObject();
+        this.underlyingFilter = (TokenizationFilter) in.readObject();
+    }
 }

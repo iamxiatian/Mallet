@@ -6,32 +6,29 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.util;
 
 import java.util.Iterator;
 
-public interface Lexer extends Iterator
-{
-	public int getStartOffset ();
+public interface Lexer extends Iterator {
+    public int getStartOffset();
 
-	public int getEndOffset ();
+    public int getEndOffset();
 
-	public String getTokenString ();
+    public String getTokenString();
 
 
-	// Iterator interface methods
+    // Iterator interface methods
 
-	public boolean hasNext ();
+    public boolean hasNext();
 
-	// Returns token text as a String
-	public Object next ();
+    // Returns token text as a String
+    public Object next();
 
-	public void remove ();
+    public void remove();
 
 }

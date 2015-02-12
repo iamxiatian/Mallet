@@ -5,32 +5,31 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 public class BIOTokenizationFilterWithTokenIndices extends
-		BIOTokenizationFilter {
+        BIOTokenizationFilter {
 
-	protected Span createSpan(Tokenization input, int startTokenIdx,
-			int endTokenIdx) {
-		StringSpan span = (StringSpan) input
-				.subspan(startTokenIdx, endTokenIdx);
-		span.setProperty("StartTokenIdx", new Integer(startTokenIdx));
-		span.setProperty("EndTokenIdx", new Integer(endTokenIdx-1));
-		return span;
-	}
+    private static final long serialVersionUID = 1L;
 
-	// Serialization garbage
+    // Serialization garbage
+    private static final int CURRENT_SERIAL_VERSION = 1;
 
-	private static final long serialVersionUID = 1L;
+    protected Span createSpan(Tokenization input, int startTokenIdx,
+                              int endTokenIdx) {
+        StringSpan span = (StringSpan) input
+                .subspan(startTokenIdx, endTokenIdx);
+        span.setProperty("StartTokenIdx", new Integer(startTokenIdx));
+        span.setProperty("EndTokenIdx", new Integer(endTokenIdx - 1));
+        return span;
+    }
 
-	private static final int CURRENT_SERIAL_VERSION = 1;
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeInt(CURRENT_SERIAL_VERSION);
+    }
 
-	private void writeObject(ObjectOutputStream out) throws IOException {
-		out.defaultWriteObject();
-		out.writeInt(CURRENT_SERIAL_VERSION);
-	}
-
-	private void readObject(ObjectInputStream in) throws IOException,
-			ClassNotFoundException {
-		in.defaultReadObject();
-		in.readInt(); // read version
-	}
+    private void readObject(ObjectInputStream in) throws IOException,
+            ClassNotFoundException {
+        in.defaultReadObject();
+        in.readInt(); // read version
+    }
 
 }

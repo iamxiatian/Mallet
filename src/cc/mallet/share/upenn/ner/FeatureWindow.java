@@ -1,12 +1,12 @@
 package cc.mallet.share.upenn.ner;
 
 
-import java.util.*;
-
-import cc.mallet.pipe.*;
-import cc.mallet.types.*;
-import cc.mallet.util.*;
-import gnu.trove.*;
+import cc.mallet.pipe.Pipe;
+import cc.mallet.types.Instance;
+import cc.mallet.types.Token;
+import cc.mallet.types.TokenSequence;
+import cc.mallet.util.PropertyList;
+import gnu.trove.map.hash.TObjectDoubleHashMap;
 
 /**
  * Adds all features of tokens in the window to the center token.
@@ -14,16 +14,17 @@ import gnu.trove.*;
 public class FeatureWindow extends Pipe implements java.io.Serializable {
 
     int left, right;
-    public FeatureWindow (int left, int right) {
+
+    public FeatureWindow(int left, int right) {
         assert (left >= 0 && right >= 0);
         this.left = left;
         this.right = right;
     }
 
-    public Instance pipe (Instance carrier) {
-        TokenSequence seq = (TokenSequence)carrier.getData();
+    public Instance pipe(Instance carrier) {
+        TokenSequence seq = (TokenSequence) carrier.getData();
         TObjectDoubleHashMap[] original = new TObjectDoubleHashMap[seq.size()];
-        for (int i=0; i<seq.size(); i++) {
+        for (int i = 0; i < seq.size(); i++) {
             Token t = seq.get(i);
             original[i] = new TObjectDoubleHashMap();
             PropertyList.Iterator pl = t.getFeatures().iterator();
@@ -32,18 +33,19 @@ public class FeatureWindow extends Pipe implements java.io.Serializable {
                 original[i].put(pl.getKey(), pl.getNumericValue());
             }
         }
-        
-        for (int i=0; i<original.length; i++) { // add to features of token i...
+
+        for (int i = 0; i < original.length; i++) { // add to features of token i...
             for (int j = -1 * left; j <= right; j++) {
                 int index = i + j; //...the features of token index
-                String append = (j < 0) ? "/"+j : "/+"+j; 
-                if (index<0 || index==i || index>=original.length) continue;
-                
+                String append = (j < 0) ? "/" + j : "/+" + j;
+                if (index < 0 || index == i || index >= original.length)
+                    continue;
+
                 Token t = seq.get(i);
                 Object[] features = original[index].keys();
-                for (int k=0; k<features.length; k++)
-                    t.setFeatureValue((String)features[k]+append, 
-                                      original[index].get(features[k]));
+                for (int k = 0; k < features.length; k++)
+                    t.setFeatureValue((String) features[k] + append,
+                            original[index].get(features[k]));
             }
         }
         return carrier;

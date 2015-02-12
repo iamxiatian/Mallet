@@ -6,45 +6,39 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.types.tests;
 
-import cc.mallet.types.DenseVector;
 import cc.mallet.types.SparseVector;
-import junit.framework.*;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
-public class TestMatrix extends TestCase
-{
-	public TestMatrix (String name) {
-		super (name);
-	}
-	
-	public void testTimesEquals ()
-	{
-		double[] d1 = new double[] {1, 2, 3, 4, 5};
-		SparseVector m1 = new SparseVector (d1);
-		SparseVector m2 = new SparseVector (d1);
-		m2.timesEqualsSparse(m1);
-		m2.print();
-	}
+public class TestMatrix extends TestCase {
+    public TestMatrix(String name) {
+        super(name);
+    }
 
-	public static Test suite ()
-	{
-		return new TestSuite (TestMatrix.class);
-	}
+    public static Test suite() {
+        return new TestSuite(TestMatrix.class);
+    }
 
-	protected void setUp ()
-	{
-	}
+    public static void main(String[] args) {
+        junit.textui.TestRunner.run(suite());
+    }
 
-	public static void main (String[] args)
-	{
-		junit.textui.TestRunner.run (suite());
-	}
-	
+    public void testTimesEquals() {
+        double[] d1 = new double[]{1, 2, 3, 4, 5};
+        SparseVector m1 = new SparseVector(d1);
+        SparseVector m2 = new SparseVector(d1);
+        m2.timesEqualsSparse(m1);
+        m2.print();
+    }
+
+    protected void setUp() {
+    }
+
 }

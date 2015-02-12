@@ -6,18 +6,16 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.types;
 
 // Immutable
 
-public interface Sequence<E>
-{
-	public int size ();
-	public E get (int index);
+public interface Sequence<E> {
+    public int size();
+
+    public E get(int index);
 }

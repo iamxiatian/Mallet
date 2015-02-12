@@ -6,31 +6,25 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.types;
 
-public class SequencePairAlignment<I,O> extends SequencePair<I,O>
-{
-	protected double weight;
-	
-	public SequencePairAlignment (Sequence<I> input, Sequence<O> output, double weight)
-	{
-		super (input, output);
-		this.weight = weight;
-	}
+public class SequencePairAlignment<I, O> extends SequencePair<I, O> {
+    protected double weight;
 
-	protected SequencePairAlignment ()
-	{
-	}
-	
-	public double getWeight()
-	{
-		return weight;
-	}
-			
+    public SequencePairAlignment(Sequence<I> input, Sequence<O> output, double weight) {
+        super(input, output);
+        this.weight = weight;
+    }
+
+    protected SequencePairAlignment() {
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
 }

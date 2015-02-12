@@ -6,12 +6,12 @@
    information, see the file `LICENSE' included with this distribution. */
 package cc.mallet.extract;
 
+import cc.mallet.types.Label;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-
-import cc.mallet.types.Label;
 
 
 /**
@@ -23,103 +23,89 @@ import cc.mallet.types.Label;
 //xxx Maybe this is the same thing as a field??
 public class LabeledSpan implements Span, Serializable {
 
-  private Span span;
-  private Label label;
-  private boolean isBackground;
-  private double confidence;
+    private static final long serialVersionUID = 1L;
+    private static final int CURRENT_SERIAL_VERSION = 1;
+    private Span span;
+    private Label label;
+    private boolean isBackground;
+    private double confidence;
 
 
-  public LabeledSpan (Span span, Label label, boolean isBackground) {
-    this (span, label, isBackground, 1.0);
-  }
+    public LabeledSpan(Span span, Label label, boolean isBackground) {
+        this(span, label, isBackground, 1.0);
+    }
 
-  public LabeledSpan (Span span, Label label, boolean isBackground, double confidence) {
-    this.span = span;
-    this.label = label;
-    this.isBackground = isBackground;
-    this.confidence = confidence;
-  }
+    public LabeledSpan(Span span, Label label, boolean isBackground, double confidence) {
+        this.span = span;
+        this.label = label;
+        this.isBackground = isBackground;
+        this.confidence = confidence;
+    }
 
+    public Span getSpan() {
+        return span;
+    }
 
-  public Span getSpan () { return span; }
+    public Label getLabel() {
+        return label;
+    }
 
-  public Label getLabel () { return label; }
+    public String getText() {
+        return span.getText();
+    }
 
+    public Object getDocument() {
+        return span.getDocument();
+    }
 
-  public String getText ()
-  {
-    return span.getText ();
-  }
+    public double getConfidence() {
+        return confidence;
+    }
 
-  public Object getDocument ()
-  {
-    return span.getDocument ();
-  }
+    void setConfidence(double c) {
+        this.confidence = c;
+    }
 
-  public double getConfidence ()
-  {
-    return confidence;
-  }
+    public boolean intersects(Span r) {
+        return span.intersects(r);
+    }
 
-  void setConfidence (double c)
-  {
-    this.confidence = c;
-  }
+    public boolean isSubspan(Span r) {
+        return span.isSubspan(r);
+    }
 
-  public boolean intersects (Span r)
-  {
-    return span.intersects (r);
-  }
+    public Span intersection(Span r) {
+        LabeledSpan other = (LabeledSpan) r;
+        Span newSpan = getSpan().intersection(other.getSpan());
+        return new LabeledSpan(newSpan, label, isBackground, confidence);
+    }
 
+    public int getEndIdx() {
+        return span.getEndIdx();
+    }
 
-  public boolean isSubspan (Span r)
-  {
-    return span.isSubspan (r);
-  }
+    public int getStartIdx() {
+        return span.getStartIdx();
+    }
 
-  public Span intersection (Span r)
-  {
-    LabeledSpan other = (LabeledSpan) r;
-    Span newSpan = getSpan ().intersection (other.getSpan ());
-    return new LabeledSpan (newSpan, label, isBackground, confidence);
-  }
+    // Serialization garbage
 
-  public int getEndIdx ()
-  {
-    return span.getEndIdx ();
-  }
+    public boolean isBackground() {
+        return isBackground;
+    }
 
+    public String toString() {
+        return label.toString() + " [span " + getStartIdx() + ".." + getEndIdx() + " confidence=" + confidence + "]";
+    }
 
-  public int getStartIdx ()
-  {
-    return span.getStartIdx ();
-  }
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeInt(CURRENT_SERIAL_VERSION);
+    }
 
-
-  public boolean isBackground ()
-  {
-    return isBackground;
-  }
-
-  public String toString ()
-  {
-    return label.toString ()+" [span "+getStartIdx ()+".."+getEndIdx ()+" confidence="+confidence+"]";
-  }
-  
-	// Serialization garbage
-
-	private static final long serialVersionUID = 1L;
-
-	private static final int CURRENT_SERIAL_VERSION = 1;
-
-	private void writeObject(ObjectOutputStream out) throws IOException {
-		out.defaultWriteObject();
-		out.writeInt(CURRENT_SERIAL_VERSION);
-	}
-
-	private void readObject(ObjectInputStream in) throws IOException,
-			ClassNotFoundException {
-		in.defaultReadObject();
-		in.readInt(); // read version
-	}
+    private void readObject(ObjectInputStream in) throws IOException,
+            ClassNotFoundException {
+        in.defaultReadObject();
+        in.readInt(); // read version
+    }
 }

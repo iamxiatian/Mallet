@@ -6,11 +6,10 @@
    information, see the file `LICENSE' included with this distribution. */
 package cc.mallet.extract;
 
-import gnu.trove.THashMap;
+import cc.mallet.types.Label;
+import gnu.trove.map.hash.THashMap;
 
 import java.util.Iterator;
-
-import cc.mallet.types.Label;
 
 /**
  * Created: Oct 12, 2004
@@ -20,40 +19,37 @@ import cc.mallet.types.Label;
  */
 public class Record {
 
-  private THashMap fieldMap;
-  private String name;
+    private THashMap fieldMap;
+    private String name;
 
-  public Record (String name, LabeledSpans spans) {
-    this.name = name;
-    fieldMap = new THashMap ();
-    for (int i = 0; i < spans.size(); i++) {
-      LabeledSpan span = spans.getLabeledSpan (i);
-      if (!span.isBackground()) {
-        Label tag = span.getLabel ();
-        Field field = (Field) fieldMap.get (tag);
-        if (field == null) {
-          field = new Field (span);
-          fieldMap.put (tag, field);
-        } else {
-          field.addFiller (span);
+    public Record(String name, LabeledSpans spans) {
+        this.name = name;
+        fieldMap = new THashMap();
+        for (int i = 0; i < spans.size(); i++) {
+            LabeledSpan span = spans.getLabeledSpan(i);
+            if (!span.isBackground()) {
+                Label tag = span.getLabel();
+                Field field = (Field) fieldMap.get(tag);
+                if (field == null) {
+                    field = new Field(span);
+                    fieldMap.put(tag, field);
+                } else {
+                    field.addFiller(span);
+                }
+            }
         }
-      }
     }
-  }
 
-  public String getName ()
-  {
-    return name;
-  }
+    public String getName() {
+        return name;
+    }
 
-  public Field getField (Label name)
-  {
-    return (Field) fieldMap.get (name);
-  }
+    public Field getField(Label name) {
+        return (Field) fieldMap.get(name);
+    }
 
-  public Iterator fieldsIterator ()
-  {
-    return fieldMap.values ().iterator ();
-  }
+    public Iterator fieldsIterator() {
+        return fieldMap.values().iterator();
+    }
 
 }

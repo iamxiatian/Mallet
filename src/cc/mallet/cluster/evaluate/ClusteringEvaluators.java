@@ -11,49 +11,49 @@ import cc.mallet.cluster.Clustering;
  */
 public class ClusteringEvaluators extends ClusteringEvaluator {
 
-	ClusteringEvaluator[] evaluators;
-	
-	public ClusteringEvaluators (ClusteringEvaluator[] evaluators) {
-		this.evaluators = evaluators;
-	}
-	
-	/**
-	 *
-	 * @param truth
-	 * @param predicted
-	 * @return A String summarizing the evaluation metric.
-	 */
-	public String evaluate (Clustering truth, Clustering predicted) {
-		String results = "";
-		for (int i = 0; i < evaluators.length; i++) {
-			String name = evaluators[i].getClass().getName();
-			results += name.substring(name.lastIndexOf('.') + 1) + ": " +
-								 evaluators[i].evaluate(truth, predicted) + "\n";
-		}
-		return results;
-	}
+    ClusteringEvaluator[] evaluators;
 
-	/**
-	 *
-	 * @return If the ClusteringEvaluator maintains state between calls
-	 * to evaluate, this method will return the total evaluation metric
-	 * since the first evaluation.
-	 */
-	public String evaluateTotals () {
-		String results = "";
-		for (int i = 0; i < evaluators.length; i++) {
-			String name = evaluators[i].getClass().getName();
-			results += name.substring(name.lastIndexOf('.') + 1) + ": " +
-								 evaluators[i].evaluateTotals() + "\n";
-		}
-		return results;
+    public ClusteringEvaluators(ClusteringEvaluator[] evaluators) {
+        this.evaluators = evaluators;
+    }
 
-	}
+    /**
+     * @param truth
+     * @param predicted
+     * @return A String summarizing the evaluation metric.
+     */
+    public String evaluate(Clustering truth, Clustering predicted) {
+        String results = "";
+        for (int i = 0; i < evaluators.length; i++) {
+            String name = evaluators[i].getClass().getName();
+            results += name.substring(name.lastIndexOf('.') + 1) + ": " +
+                    evaluators[i].evaluate(truth, predicted) + "\n";
+        }
+        return results;
+    }
 
-	public int size () { return evaluators.length; }
+    /**
+     * @return If the ClusteringEvaluator maintains state between calls
+     * to evaluate, this method will return the total evaluation metric
+     * since the first evaluation.
+     */
+    public String evaluateTotals() {
+        String results = "";
+        for (int i = 0; i < evaluators.length; i++) {
+            String name = evaluators[i].getClass().getName();
+            results += name.substring(name.lastIndexOf('.') + 1) + ": " +
+                    evaluators[i].evaluateTotals() + "\n";
+        }
+        return results;
 
-	@Override
-	public double[] getEvaluationScores(Clustering truth, Clustering predicted) {
-		throw new UnsupportedOperationException("Not yet implemented");
-	}	
+    }
+
+    public int size() {
+        return evaluators.length;
+    }
+
+    @Override
+    public double[] getEvaluationScores(Clustering truth, Clustering predicted) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 }

@@ -6,24 +6,20 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.classify;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.io.Serializable;
-
-import cc.mallet.classify.Classifier;
 import cc.mallet.types.FeatureVector;
 import cc.mallet.types.Instance;
 import cc.mallet.types.LabelVector;
 import cc.mallet.types.Labeling;
+
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.Serializable;
 
 /**
  * The result of classifying a single instance.
@@ -32,101 +28,92 @@ import cc.mallet.types.Labeling;
  * Also has methods for comparing the correct (true) label contained in the
  * target field of the instance with the one produced by the classifier.
  */
-public class Classification implements Serializable
-{
-	Instance instance;
-	Classifier classifier;
-	Labeling labeling;
+public class Classification implements Serializable {
+    Instance instance;
+    Classifier classifier;
+    Labeling labeling;
 
-	public Classification (Instance instance, Classifier classifier,
-												 Labeling labeling)
-	{
-		this.instance = instance;
-		this.classifier = classifier;
-		this.labeling = labeling;
-	}
+    public Classification(Instance instance, Classifier classifier,
+                          Labeling labeling) {
+        this.instance = instance;
+        this.classifier = classifier;
+        this.labeling = labeling;
+    }
 
-	public Instance getInstance ()
-	{
-		return instance;
-	}
+    public Instance getInstance() {
+        return instance;
+    }
 
-	public Classifier getClassifier ()
-	{
-		return classifier;
-	}
+    public Classifier getClassifier() {
+        return classifier;
+    }
 
-	public Labeling getLabeling ()
-	{
-		return labeling;
-	}
+    public Labeling getLabeling() {
+        return labeling;
+    }
 
-	public LabelVector getLabelVector ()
-	{
-		return labeling.toLabelVector();
-	}
+    public LabelVector getLabelVector() {
+        return labeling.toLabelVector();
+    }
 
-	public boolean bestLabelIsCorrect ()
-	{
-		Labeling correctLabeling = instance.getLabeling();
-		if (correctLabeling == null)
-			throw new IllegalStateException ("Instance has no label.");
-		return (labeling.getBestLabel().equals (correctLabeling.getBestLabel()));
-	}
+    public boolean bestLabelIsCorrect() {
+        Labeling correctLabeling = instance.getLabeling();
+        if (correctLabeling == null)
+            throw new IllegalStateException("Instance has no label.");
+        return (labeling.getBestLabel().equals(correctLabeling.getBestLabel()));
+    }
 
-	public double valueOfCorrectLabel ()
-	{
-		Labeling correctLabeling = instance.getLabeling();
-		int correctLabelIndex = correctLabeling.getBestIndex();
-		return labeling.value (correctLabelIndex);
-	}
+    public double valueOfCorrectLabel() {
+        Labeling correctLabeling = instance.getLabeling();
+        int correctLabelIndex = correctLabeling.getBestIndex();
+        return labeling.value(correctLabelIndex);
+    }
 
-	public void print() {
-		//not implemented
-	}
-	public void print (PrintWriter pw) throws FileNotFoundException
-	{
-		// xxx Fix this.
+    public void print() {
+        //not implemented
+    }
+
+    public void print(PrintWriter pw) throws FileNotFoundException {
+        // xxx Fix this.
+        /*System.out.print (classifier.getClass().getName() + "(.");
+		System.out.print (") = [");
+		for (int i = 0; i < labeling.numLocations(); i++)
+			System.out.print (labeling.labelAtLocation(i).toString()+"="+labeling.valueAtLocation(i)+" ");
+		System.out.println ("]");*/
+        pw.print(classifier.getClass().getName());
+        pw.print(" ");
+        pw.print(instance.getSource() + " ");
+        for (int i = 0; i < labeling.numLocations(); i++)
+            pw.print(labeling.labelAtLocation(i).toString() + "=" + labeling.valueAtLocation(i) + " ");
+        pw.println();
+    }
+
+    public void printRank(PrintWriter pw) throws FileNotFoundException {
+        // xxx Fix this.
 		/*System.out.print (classifier.getClass().getName() + "(.");
 		System.out.print (") = [");
 		for (int i = 0; i < labeling.numLocations(); i++)
 			System.out.print (labeling.labelAtLocation(i).toString()+"="+labeling.valueAtLocation(i)+" ");
-		System.out.println ("]");*/		
-		pw.print(classifier.getClass().getName());
-		pw.print(" ");
-		pw.print(instance.getSource() + " ");
-		for (int i = 0; i < labeling.numLocations(); i++)
-			pw.print (labeling.labelAtLocation(i).toString()+"="+labeling.valueAtLocation(i)+" ");
-		pw.println ();
-	}
-	
-	public void printRank (PrintWriter pw) throws FileNotFoundException
-	{
-		// xxx Fix this.
-		/*System.out.print (classifier.getClass().getName() + "(.");
-		System.out.print (") = [");
-		for (int i = 0; i < labeling.numLocations(); i++)
-			System.out.print (labeling.labelAtLocation(i).toString()+"="+labeling.valueAtLocation(i)+" ");
-		System.out.println ("]");*/		
-		pw.print(classifier.getClass().getName());
-		pw.print(" ");
-		pw.print(instance.getSource() + " ");
-		LabelVector lv = labeling.toLabelVector();
-		lv.printByRank(pw);
-		pw.println ();
-	}
+		System.out.println ("]");*/
+        pw.print(classifier.getClass().getName());
+        pw.print(" ");
+        pw.print(instance.getSource() + " ");
+        LabelVector lv = labeling.toLabelVector();
+        lv.printByRank(pw);
+        pw.println();
+    }
 
-	public Instance toInstance() {
-		Instance ret;
-		FeatureVector fv;
-		double[] values = new double[labeling.numLocations()];
-		int[] indices = new int[labeling.numLocations()];
-		for(int i = 0; i < labeling.numLocations(); i++){
-			indices[i] = labeling.indexAtLocation(i);
-			values[i] = labeling.valueAtLocation(i);
-		}
-		fv = new FeatureVector(labeling.getAlphabet(), indices, values);
-		ret = new Instance(fv,null,null,instance.getSource());
-		return ret;
-	}
+    public Instance toInstance() {
+        Instance ret;
+        FeatureVector fv;
+        double[] values = new double[labeling.numLocations()];
+        int[] indices = new int[labeling.numLocations()];
+        for (int i = 0; i < labeling.numLocations(); i++) {
+            indices[i] = labeling.indexAtLocation(i);
+            values[i] = labeling.valueAtLocation(i);
+        }
+        fv = new FeatureVector(labeling.getAlphabet(), indices, values);
+        ret = new Instance(fv, null, null, instance.getSource());
+        return ret;
+    }
 }

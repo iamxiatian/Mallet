@@ -13,18 +13,18 @@ import cc.mallet.util.Randoms;
  * $Id: DiscreteFactor.java,v 1.1 2007/10/22 21:37:44 mccallum Exp $
  */
 public interface DiscreteFactor extends Factor {
-  
-  int sampleLocation (Randoms r);
 
-  double value (int index);
+    int sampleLocation(Randoms r);
 
-  int numLocations ();
+    double value(int index);
 
-  double valueAtLocation (int loc);
+    int numLocations();
 
-  int indexAtLocation (int loc);
+    double valueAtLocation(int loc);
 
-  double[] toValueArray ();
+    int indexAtLocation(int loc);
 
-  int singleIndex (int[] smallDims);
+    double[] toValueArray();
+
+    int singleIndex(int[] smallDims);
 }

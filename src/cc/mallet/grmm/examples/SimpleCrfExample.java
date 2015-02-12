@@ -7,11 +7,6 @@
 package cc.mallet.grmm.examples;
 
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileNotFoundException;
-import java.util.regex.Pattern;
-
 import cc.mallet.grmm.learning.ACRF;
 import cc.mallet.grmm.learning.ACRFTrainer;
 import cc.mallet.grmm.learning.DefaultAcrfTrainer;
@@ -23,45 +18,49 @@ import cc.mallet.pipe.iterator.LineGroupIterator;
 import cc.mallet.types.InstanceList;
 import cc.mallet.util.FileUtils;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.regex.Pattern;
+
 /**
  * $Id: SimpleCrfExample.java,v 1.1 2007/10/22 21:38:02 mccallum Exp $
  */
 public class SimpleCrfExample {
 
-  public static void main (String[] args) throws FileNotFoundException
-  {
-    File trainFile = new File (args[0]);
-    File testFile = new File (args[1]);
-    File crfFile = new File (args[2]);
+    public static void main(String[] args) throws FileNotFoundException {
+        File trainFile = new File(args[0]);
+        File testFile = new File(args[1]);
+        File crfFile = new File(args[2]);
 
-    Pipe pipe = new SerialPipes (new Pipe[] {
-        new GenericAcrfData2TokenSequence (2),
-        new TokenSequence2FeatureVectorSequence (true, true),
-    });
+        Pipe pipe = new SerialPipes(new Pipe[]{
+                new GenericAcrfData2TokenSequence(2),
+                new TokenSequence2FeatureVectorSequence(true, true),
+        });
 
-    InstanceList training = new InstanceList (pipe);
-    training.addThruPipe (new LineGroupIterator (new FileReader (trainFile),
-                                         Pattern.compile ("\\s*"),
-                                         true));
+        InstanceList training = new InstanceList(pipe);
+        training.addThruPipe(new LineGroupIterator(new FileReader(trainFile),
+                Pattern.compile("\\s*"),
+                true));
 
-    InstanceList testing = new InstanceList (pipe);
-    training.addThruPipe (new LineGroupIterator (new FileReader (testFile),
-                                         Pattern.compile ("\\s*"),
-                                         true));
+        InstanceList testing = new InstanceList(pipe);
+        training.addThruPipe(new LineGroupIterator(new FileReader(testFile),
+                Pattern.compile("\\s*"),
+                true));
 
-    ACRF.Template[] tmpls = new ACRF.Template[] {
-            new ACRF.BigramTemplate (0),
-            new ACRF.BigramTemplate (1),
-            new ACRF.PairwiseFactorTemplate (0,1),
-            new CrossTemplate1 (0,1)
-    };
+        ACRF.Template[] tmpls = new ACRF.Template[]{
+                new ACRF.BigramTemplate(0),
+                new ACRF.BigramTemplate(1),
+                new ACRF.PairwiseFactorTemplate(0, 1),
+                new CrossTemplate1(0, 1)
+        };
 
-    ACRF acrf = new ACRF (pipe, tmpls);
+        ACRF acrf = new ACRF(pipe, tmpls);
 
-    ACRFTrainer trainer = new DefaultAcrfTrainer ();
-    trainer.train (acrf, training, null, testing, 99999);
+        ACRFTrainer trainer = new DefaultAcrfTrainer();
+        trainer.train(acrf, training, null, testing, 99999);
 
-    FileUtils.writeGzippedObject (crfFile, acrf);
-  }
+        FileUtils.writeGzippedObject(crfFile, acrf);
+    }
 }
 

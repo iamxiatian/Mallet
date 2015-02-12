@@ -6,95 +6,96 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
 package cc.mallet.pipe;
 
 
-import java.util.logging.*;
-import java.lang.reflect.Array;
-
-import cc.mallet.pipe.Pipe;
 import cc.mallet.types.Alphabet;
 import cc.mallet.types.FeatureVector;
 import cc.mallet.types.Instance;
 import cc.mallet.types.Labeling;
 import cc.mallet.util.MalletLogger;
 
-/** Converts a Java array of numerical types to a FeatureVector, where the
-    Alphabet is the data array index wrapped in an Integer object.
+import java.lang.reflect.Array;
+import java.util.logging.Logger;
 
-    @author Jerod Weinman <A HREF="mailto:weinman@cs.umass.edu">weinman@cs.umass.edu</A>
+/**
+ * Converts a Java array of numerical types to a FeatureVector, where the
+ * Alphabet is the data array index wrapped in an Integer object.
+ *
+ * @author Jerod Weinman <A HREF="mailto:weinman@cs.umass.edu">weinman@cs.umass.edu</A>
  */
 public class Array2FeatureVector extends Pipe {
 
-	private static Logger logger = MalletLogger.getLogger(Array2FeatureVector.class.getName());
+    private static Logger logger = MalletLogger.getLogger(Array2FeatureVector.class.getName());
 
-	public Array2FeatureVector(int capacity) {
+    public Array2FeatureVector(int capacity) {
 
-		this.dataAlphabet = new Alphabet(capacity);
+        this.dataAlphabet = new Alphabet(capacity);
 
-	}
+    }
 
-	public Array2FeatureVector() {
-		this(1000);
-	}
+    public Array2FeatureVector() {
+        this(1000);
+    }
 
-	/** Construct a pipe based on the dimensions of the data and target. */
-	public Array2FeatureVector( Alphabet dataAlphabet, Alphabet targetAlphabet ) {
+    /**
+     * Construct a pipe based on the dimensions of the data and target.
+     */
+    public Array2FeatureVector(Alphabet dataAlphabet, Alphabet targetAlphabet) {
 
-		this.dataAlphabet = dataAlphabet;
-		this.targetAlphabet = targetAlphabet;
+        this.dataAlphabet = dataAlphabet;
+        this.targetAlphabet = targetAlphabet;
 
-	}
+    }
 
-	/** Convert the data in an <CODE>Instance</CODE> from an array to a 
-	<CODE>FeatureVector</CODE> leaving other fields unchanged.
+    /**
+     * Convert the data in an <CODE>Instance</CODE> from an array to a
+     * <CODE>FeatureVector</CODE> leaving other fields unchanged.
+     * <p>
+     * <CODE>Instance.getData()</CODE> must return a numeric array, and it is
+     * cast to <CODE>double[]</CODE>
+     *
+     * @throws IllegalStateException If <CODE>Instance.getTarget()</CODE> is
+     *                               not a Labeling
+     */
+    public Instance pipe(Instance carrier)
+            throws IllegalStateException {
 
-	<CODE>Instance.getData()</CODE> must return a numeric array, and it is
-	 cast to <CODE>double[]</CODE>
+        int dataLength = Array.getLength(carrier.getData());
 
-	@throws IllegalStateException If <CODE>Instance.getTarget()</CODE> is
-	not a Labeling
-	 */
-	public Instance pipe(  Instance carrier )
-	throws IllegalStateException
-	{
+        if (dataLength > dataAlphabet.size())
+            for (int k = dataAlphabet.size(); k < dataLength; k++)
+                dataAlphabet.lookupIndex(new Integer(k), true); // 'add'
 
-		int dataLength = Array.getLength( carrier.getData() );
-
-		if ( dataLength > dataAlphabet.size() )
-			for (int k=dataAlphabet.size() ; k<dataLength ; k++ )
-				dataAlphabet.lookupIndex( new Integer(k) , true ); // 'add'
-
-		FeatureVector fv = new FeatureVector( dataAlphabet, 
-				(double[])carrier.getData() );
-
-
-		// Check if we've set the target alphabet member
-		if (targetAlphabet == null) {
-			if (carrier.getTarget() instanceof Labeling)
-				targetAlphabet = ((Labeling)carrier.getTarget()).getLabelAlphabet();
-			else
-				throw new IllegalStateException ("Instance target is not a " +
-						"Labeling; it is a " + 
-						carrier.getTarget().getClass().getName());
+        FeatureVector fv = new FeatureVector(dataAlphabet,
+                (double[]) carrier.getData());
 
 
-		}
+        // Check if we've set the target alphabet member
+        if (targetAlphabet == null) {
+            if (carrier.getTarget() instanceof Labeling)
+                targetAlphabet = ((Labeling) carrier.getTarget()).getLabelAlphabet();
+            else
+                throw new IllegalStateException("Instance target is not a " +
+                        "Labeling; it is a " +
+                        carrier.getTarget().getClass().getName());
 
-		carrier.setData( fv );
 
-		return carrier;
+        }
+
+        carrier.setData(fv);
+
+        return carrier;
 
 		/*return new Instance( fv, carrier.getTarget(), carrier.getName(), 
-	  carrier.getSource(), this );*/
-	}
+      carrier.getSource(), this );*/
+    }
 
 
-	/** Current size of the Vocabulary */
-	public int size() 
-	{
-		return dataAlphabet.size();
-	}
+    /**
+     * Current size of the Vocabulary
+     */
+    public int size() {
+        return dataAlphabet.size();
+    }
 }

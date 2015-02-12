@@ -5,28 +5,28 @@
    version 1.0, as published by http://www.opensource.org.  For further
    information, see the file `LICENSE' included with this distribution. */
 
-/** 
-		@author Aron Culotta <a href="mailto:culotta@cs.umass.edu">culotta@cs.umass.edu</a>
-*/
+/**
+ @author Aron Culotta <a href="mailto:culotta@cs.umass.edu">culotta@cs.umass.edu</a>
+ */
 
 package cc.mallet.fst.confidence;
 
+import cc.mallet.fst.Segment;
+import cc.mallet.fst.Transducer;
+import cc.mallet.types.InstanceList;
+import cc.mallet.types.Labeling;
+
 import java.util.ArrayList;
 
-import cc.mallet.fst.*;
-import cc.mallet.types.*;
-
 /**
- *
  * Interface for transducerCorrectors, which correct a subset of the
  * {@link Segment}s produced by a {@link Transducer}. It's primary
  * purpose is to find the {@link Segment}s that the {@link Transducer}
  * is least confident in and correct those using the true {@link
  * Labeling} (<code>correctLeastConfidenceSegments</code>).
  */
-public interface TransducerCorrector 
-{
-		
-	public ArrayList correctLeastConfidentSegments (InstanceList ilist, Object[] startTags,
-																										Object[] continueTags);
+public interface TransducerCorrector {
+
+    public ArrayList correctLeastConfidentSegments(InstanceList ilist, Object[] startTags,
+                                                   Object[] continueTags);
 }

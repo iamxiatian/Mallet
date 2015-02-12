@@ -7,22 +7,21 @@
 
 package cc.mallet.pipe.tests;
 
-import java.io.*;
-
 import cc.mallet.pipe.Noop;
 import cc.mallet.pipe.Pipe;
-import cc.mallet.pipe.iterator.*;
+import cc.mallet.pipe.iterator.ParenGroupIterator;
 import cc.mallet.types.InstanceList;
-
-import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import java.io.Reader;
+import java.io.StringReader;
+
 
 /**
- *  Unit Test for PipeInputIterators
- *
- *
+ * Unit Test for PipeInputIterators
+ * <p>
+ * <p>
  * Created: Thu Feb 26 14:27:15 2004
  *
  * @author <a href="mailto:casutton@cs.umass.edu">Charles Sutton</a>
@@ -30,37 +29,34 @@ import junit.framework.TestSuite;
  */
 public class TestIterators extends TestCase {
 
-	public TestIterators (String name){
-		super(name);
-	}
+    public TestIterators(String name) {
+        super(name);
+    }
 
+    /**
+     * @return a <code>TestSuite</code>
+     */
+    public static TestSuite suite() {
+        return new TestSuite(TestIterators.class);
+    }
 
-	public void testParenGroupIterator ()
-	{
-		String input = "(a (b c) ((d))  ) f\n\n (3\n 4) (  6) ";
-		Reader reader = new StringReader (input);
-		ParenGroupIterator it = new ParenGroupIterator (reader);
-		Pipe pipe = new Noop();
-		pipe.setTargetProcessing (false);
+    public static void main(String[] args) {
+        junit.textui.TestRunner.run(suite());
+    }
 
-		InstanceList lst = new InstanceList (pipe);
-		lst.addThruPipe (it);
+    public void testParenGroupIterator() {
+        String input = "(a (b c) ((d))  ) f\n\n (3\n 4) (  6) ";
+        Reader reader = new StringReader(input);
+        ParenGroupIterator it = new ParenGroupIterator(reader);
+        Pipe pipe = new Noop();
+        pipe.setTargetProcessing(false);
 
-		assertEquals (3, lst.size());
-		assertEquals ("(a (b c) ((d))  )", lst.get(0).getData());
-		assertEquals ("(3\n 4)", lst.get(1).getData());
-		assertEquals ("(  6)", lst.get(2).getData());
-	}
+        InstanceList lst = new InstanceList(pipe);
+        lst.addThruPipe(it);
 
-
-/**
- * @return a <code>TestSuite</code>
- */
-	public static TestSuite suite(){
-		return new TestSuite (TestIterators.class);
-	}
-
-	public static void main(String[] args) {
-		junit.textui.TestRunner.run(suite());
-	}
+        assertEquals(3, lst.size());
+        assertEquals("(a (b c) ((d))  )", lst.get(0).getData());
+        assertEquals("(3\n 4)", lst.get(1).getData());
+        assertEquals("(  6)", lst.get(2).getData());
+    }
 }// TestIterators

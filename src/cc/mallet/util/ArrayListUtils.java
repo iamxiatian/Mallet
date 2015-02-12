@@ -6,51 +6,45 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
+/**
+ @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 
 package cc.mallet.util;
 
 import java.util.ArrayList;
 
-public class ArrayListUtils
-{
+public class ArrayListUtils {
 
-	// xxx Why not just use java.util.Arrays.asList (Object[] a)  -cas
-	static public ArrayList createArrayList (Object[] a)
-	{
-		ArrayList al = new ArrayList (a.length);
-		for (int i = 0; i < a.length; i++)
-			al.add (a[i]);
-		return al;
-	}
+    // xxx Why not just use java.util.Arrays.asList (Object[] a)  -cas
+    static public ArrayList createArrayList(Object[] a) {
+        ArrayList al = new ArrayList(a.length);
+        for (int i = 0; i < a.length; i++)
+            al.add(a[i]);
+        return al;
+    }
 
-	// Useful until java 1.5  -ghuang
-	static public int[] toIntArray (ArrayList list)
-	{
-		int[] result = new int[list.size()];
+    // Useful until java 1.5  -ghuang
+    static public int[] toIntArray(ArrayList list) {
+        int[] result = new int[list.size()];
 
-		for (int i = 0; i < list.size(); i++) {
-			Number n = (Number) list.get(i);
-			result[i] = n.intValue();
-		}
+        for (int i = 0; i < list.size(); i++) {
+            Number n = (Number) list.get(i);
+            result[i] = n.intValue();
+        }
 
-		return result;
-	}
+        return result;
+    }
 
-	// Useful until java 1.5  -ghuang
-	static public double[] toDoubleArray (ArrayList list)
-	{
-		double[] result = new double[list.size()];
+    // Useful until java 1.5  -ghuang
+    static public double[] toDoubleArray(ArrayList list) {
+        double[] result = new double[list.size()];
 
-		for (int i = 0; i < list.size(); i++) {
-			Number n = (Number) list.get(i);
-			result[i] = n.doubleValue();
-		}
+        for (int i = 0; i < list.size(); i++) {
+            Number n = (Number) list.get(i);
+            result[i] = n.doubleValue();
+        }
 
-		return result;
-	}
+        return result;
+    }
 }

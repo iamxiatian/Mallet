@@ -6,56 +6,58 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-
 package cc.mallet.pipe;
 
 
-import java.io.*;
+import cc.mallet.types.Instance;
+import cc.mallet.types.Token;
+import cc.mallet.types.TokenSequence;
 
-import cc.mallet.types.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 // convert & to &amp
-/** convert & to &amp;amp in tokens of a token sequence
-   @author Aron Culotta <a
-   href="mailto:culotta@cs.umass.edu">culotta@cs.umass.edu</a>
+
+/**
+ * convert & to &amp;amp in tokens of a token sequence
+ *
+ * @author Aron Culotta <a
+ *         href="mailto:culotta@cs.umass.edu">culotta@cs.umass.edu</a>
  */
 
-public class MakeAmpersandXMLFriendly extends Pipe implements Serializable
-{
+public class MakeAmpersandXMLFriendly extends Pipe implements Serializable {
 
-	public MakeAmpersandXMLFriendly ()
-	{
-	}
+    private static final long serialVersionUID = 1;
+    private static final int CURRENT_SERIAL_VERSION = 0;
+    // Serialization
 
-	public Instance pipe (Instance carrier)
-	{
-		TokenSequence ts = (TokenSequence) carrier.getData();
-		for (int i = 0; i < ts.size(); i++) {
-			Token t = ts.get(i);
-			String s = t.getText();
-			if (s.indexOf("&") != -1) {
-				if (s.indexOf("&amp;") != -1) // already friendly
-					return carrier;
-				else {
-					s.replaceAll ("&", "&amp;");
-					t.setText (s);
-				}
-			}
-		}
-		return carrier;
-	}
-	// Serialization 
-	
-	private static final long serialVersionUID = 1;
-	private static final int CURRENT_SERIAL_VERSION = 0;
-	
-	private void writeObject (ObjectOutputStream out) throws IOException {
-		out.writeInt (CURRENT_SERIAL_VERSION);
-	}
-	
-	private void readObject (ObjectInputStream in) throws IOException, ClassNotFoundException {
-		int version = in.readInt ();
-	}
+    public MakeAmpersandXMLFriendly() {
+    }
+
+    public Instance pipe(Instance carrier) {
+        TokenSequence ts = (TokenSequence) carrier.getData();
+        for (int i = 0; i < ts.size(); i++) {
+            Token t = ts.get(i);
+            String s = t.getText();
+            if (s.indexOf("&") != -1) {
+                if (s.indexOf("&amp;") != -1) // already friendly
+                    return carrier;
+                else {
+                    s.replaceAll("&", "&amp;");
+                    t.setText(s);
+                }
+            }
+        }
+        return carrier;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(CURRENT_SERIAL_VERSION);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        int version = in.readInt();
+    }
 
 }

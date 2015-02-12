@@ -5,50 +5,48 @@
    version 1.0, as published by http://www.opensource.org.  For further
    information, see the file `LICENSE' included with this distribution. */
 
-/** 
-		@author Aron Culotta <a href="mailto:culotta@cs.umass.edu">culotta@cs.umass.edu</a>
-*/
+/**
+ @author Aron Culotta <a href="mailto:culotta@cs.umass.edu">culotta@cs.umass.edu</a>
+ */
 
 package cc.mallet.fst.confidence;
 
-import java.util.logging.*;
-import java.util.*;
-
-import cc.mallet.fst.*;
-import cc.mallet.pipe.iterator.*;
-import cc.mallet.types.*;
+import cc.mallet.fst.Segment;
+import cc.mallet.fst.Transducer;
+import cc.mallet.pipe.iterator.SegmentIterator;
+import cc.mallet.types.Instance;
 import cc.mallet.util.MalletLogger;
 
+import java.util.logging.Logger;
+
 /**
-	 Estimates the confidence of an entire sequence by combining the
-	 output of a segment confidence estimator for each segment.
+ * Estimates the confidence of an entire sequence by combining the
+ * output of a segment confidence estimator for each segment.
  */
-public class SegmentProductConfidenceEstimator extends TransducerSequenceConfidenceEstimator
-{
-	TransducerConfidenceEstimator segmentEstimator;
-	
-	private static Logger logger = MalletLogger.getLogger(
-		SegmentProductConfidenceEstimator.class.getName());
+public class SegmentProductConfidenceEstimator extends TransducerSequenceConfidenceEstimator {
+    private static Logger logger = MalletLogger.getLogger(
+            SegmentProductConfidenceEstimator.class.getName());
+    TransducerConfidenceEstimator segmentEstimator;
 
 
-	public SegmentProductConfidenceEstimator (Transducer model,
-																						TransducerConfidenceEstimator segmentConfidenceEstimator) {
-		super(model);
-		this.segmentEstimator = segmentConfidenceEstimator;
-	}
+    public SegmentProductConfidenceEstimator(Transducer model,
+                                             TransducerConfidenceEstimator segmentConfidenceEstimator) {
+        super(model);
+        this.segmentEstimator = segmentConfidenceEstimator;
+    }
 
-	/**
-		 Calculates the confidence in the tagging of a {@link Instance}.
-	 */
-	public double estimateConfidenceFor (Instance instance,
-																			 Object[] startTags,
-																			 Object[] inTags) {
-		SegmentIterator iter = new SegmentIterator (model, instance, startTags, inTags);
-		double instanceConfidence = 1;
-		while (iter.hasNext()) {
-			Segment s = (Segment) iter.nextSegment();
-			instanceConfidence *= segmentEstimator.estimateConfidenceFor (s);			
-		}
-		return instanceConfidence;
-	}
+    /**
+     * Calculates the confidence in the tagging of a {@link Instance}.
+     */
+    public double estimateConfidenceFor(Instance instance,
+                                        Object[] startTags,
+                                        Object[] inTags) {
+        SegmentIterator iter = new SegmentIterator(model, instance, startTags, inTags);
+        double instanceConfidence = 1;
+        while (iter.hasNext()) {
+            Segment s = (Segment) iter.nextSegment();
+            instanceConfidence *= segmentEstimator.estimateConfidenceFor(s);
+        }
+        return instanceConfidence;
+    }
 }

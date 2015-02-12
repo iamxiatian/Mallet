@@ -6,10 +6,8 @@
    information, see the file `LICENSE' included with this distribution. */
 
 
-
-
-/** 
-   @author Aron Culotta <a href="mailto:culotta@cs.umass.edu">culotta@cs.umass.edu</a>
+/**
+ @author Aron Culotta <a href="mailto:culotta@cs.umass.edu">culotta@cs.umass.edu</a>
  */
 
 package cc.mallet.extract;
@@ -17,12 +15,11 @@ package cc.mallet.extract;
 /**
  * Estimates the confidence in the labeling of a LabeledSpan.
  */
-abstract public class ExtractionConfidenceEstimator
-{
-  public void estimateConfidence (Extraction extraction) {
-    for (int i=0; i < extraction.getNumDocuments(); i++) 
-      estimateConfidence(extraction.getDocumentExtraction(i));
-  }
+abstract public class ExtractionConfidenceEstimator {
+    public void estimateConfidence(Extraction extraction) {
+        for (int i = 0; i < extraction.getNumDocuments(); i++)
+            estimateConfidence(extraction.getDocumentExtraction(i));
+    }
 
-  abstract public void estimateConfidence (DocumentExtraction documentExtraction);
+    abstract public void estimateConfidence(DocumentExtraction documentExtraction);
 }

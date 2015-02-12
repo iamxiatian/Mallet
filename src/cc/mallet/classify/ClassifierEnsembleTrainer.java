@@ -12,22 +12,22 @@ import cc.mallet.types.InstanceList;
 /**
  * @author <a href="mailto:mccallum@cs.umass.edu">Andrew McCallum</a>
  */
-public class ClassifierEnsembleTrainer extends ClassifierTrainer<ClassifierEnsemble>
-{
-  Classifier[] classifiers;
-	ClassifierEnsemble classifier;
-	public ClassifierEnsemble getClassifier () { return classifier; }
+public class ClassifierEnsembleTrainer extends ClassifierTrainer<ClassifierEnsemble> {
+    Classifier[] classifiers;
+    ClassifierEnsemble classifier;
 
-  public ClassifierEnsembleTrainer (Classifier[] classifiers)
-  {
-    this.classifiers = (Classifier[]) classifiers.clone();
-  }
+    public ClassifierEnsembleTrainer(Classifier[] classifiers) {
+        this.classifiers = (Classifier[]) classifiers.clone();
+    }
 
-  public ClassifierEnsemble train (InstanceList trainingSet)
-  {
-    //if (initialClassifier != null) throw new IllegalArgumentException("initialClassifier not yet supported");
-    // Make an instance list, with features being the outputs of the ensemble classifiers
-    //return null;
-  	throw new IllegalStateException ("Not yet implemented.");
-  }
+    public ClassifierEnsemble getClassifier() {
+        return classifier;
+    }
+
+    public ClassifierEnsemble train(InstanceList trainingSet) {
+        //if (initialClassifier != null) throw new IllegalArgumentException("initialClassifier not yet supported");
+        // Make an instance list, with features being the outputs of the ensemble classifiers
+        //return null;
+        throw new IllegalStateException("Not yet implemented.");
+    }
 }

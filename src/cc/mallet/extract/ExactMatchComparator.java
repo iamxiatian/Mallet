@@ -14,9 +14,8 @@ package cc.mallet.extract;
  */
 public class ExactMatchComparator implements FieldComparator {
 
-  public boolean matches (String fieldVal1, String fieldVal2)
-  {
-    return fieldVal1.equals (fieldVal2);
-  }
-  
+    public boolean matches(String fieldVal1, String fieldVal2) {
+        return fieldVal1.equals(fieldVal2);
+    }
+
 }
