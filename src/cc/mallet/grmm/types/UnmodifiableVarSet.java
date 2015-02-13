@@ -79,7 +79,7 @@ public class UnmodifiableVarSet implements VarSet, Serializable {
         return subVarSet.toArray(objects);
     }
 
-    public boolean add(Object o) {
+    public boolean add(Variable o) {
         throw new UnsupportedOperationException("Attempt to modify unmodifiable clique: " + this);
     }
 

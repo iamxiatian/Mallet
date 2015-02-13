@@ -24,7 +24,7 @@ import java.util.Collection;
  * @author Charles Sutton
  * @version $Id: BitVarSet.java,v 1.1 2007/10/22 21:37:44 mccallum Exp $
  */
-public class BitVarSet extends AbstractSet implements VarSet {
+public class BitVarSet extends AbstractSet<Variable> implements VarSet {
 
     private static final long serialVersionUID = 1;
     private static final int CURRENT_SERIAL_VERSION = 1;
@@ -66,8 +66,8 @@ public class BitVarSet extends AbstractSet implements VarSet {
         this(vsOld.get(0).getUniverse(), vsOld);
     }
 
-    public boolean add(Object o) {
-        int idx = universe.getIndex((Variable) o);
+    public boolean add(Variable o) {
+        int idx = universe.getIndex(o);
         if (idx == -1)
             throw new UnsupportedOperationException();
         bitset.set(idx);

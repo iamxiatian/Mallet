@@ -1,6 +1,7 @@
 package cc.mallet.util;
 
 import cc.mallet.types.*;
+import gnu.trove.map.hash.TIntIntHashMap;
 
 import java.io.File;
 import java.text.NumberFormat;

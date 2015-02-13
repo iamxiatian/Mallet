@@ -17,6 +17,7 @@ import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jgrapht.Graph;
+import org.jgrapht.Graphs;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleGraph;
@@ -73,7 +74,7 @@ public class TRP extends AbstractBeliefPropagation {
         return trp;
     }
 
-    private static cc.mallet.grmm.types.Tree graphToTree(Graph<Object,
+    private static cc.mallet.grmm.types.Tree graphToTree(UndirectedGraph<Object,
             DefaultEdge> g) throws
             Exception {
         // Perhaps handle gracefully?? -cas
@@ -89,8 +90,7 @@ public class TRP extends AbstractBeliefPropagation {
             for (Iterator<DefaultEdge> it2 = g.edgesOf(v1).iterator();
                  it2.hasNext(); ) {
                 DefaultEdge edge = it2.next();
-                edge
-                Object v2 = edge.oppositeVertex(v1);
+                Object v2 = Graphs.getOppositeVertex(g, edge, v1);
                 if (tree.getParent(v1) != v2) {
                     tree.addNode(v1, v2);
                     assert tree.getParent(v2) == v1;
@@ -658,7 +658,8 @@ public class TRP extends AbstractBeliefPropagation {
                     touchFactor(factor);
                 }
 
-                UndirectedGraph g = new SimpleGraph(Variable.class);
+                UndirectedGraph<Object, DefaultEdge> g = new SimpleGraph<>
+                        (DefaultEdge.class);
                 for (Iterator<Variable> it = fullGraph.variablesIterator();
                      it.hasNext(); ) {
                     Variable var = it.next();

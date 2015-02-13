@@ -1,0 +1,74 @@
+apply plugin: 'idea'
+apply plugin: 'java'
+apply plugin: 'application'
+
+group = 'cc.mallet'
+archivesBaseName = 'mallet'
+version = '2.0.9-SUMMER'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+sourceSets { 
+     main { 
+         java.srcDir "$projectDir/src"
+     } 
+	test { 
+         java.srcDir "$projectDir/src"
+     } 
+ }
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2'
+}
+
+idea {
+    module {
+        downloadJavadoc = false
+        downloadSources = false
+    }
+}
+
+task copyJars(type: Copy) {
+    from configurations.runtime
+    into 'dist'
+}
+
+repositories {
+    mavenCentral()
+    mavenCentral name: "ansj", artifactUrls: ["http://maven.ansj.org/"]
+    mavenCentral name: "info-bliki-repository", artifactUrls: ["http://gwtwiki.googlecode.com/svn/maven-repository/"]
+    mavenCentral name: "erichseifert.de", artifactUrls: ["http://mvn.erichseifert.de/maven2"]
+}
+
+dependencies {
+    compile(
+            'org.slf4j:slf4j-api:1.7.7',
+            'ch.qos.logback:logback-core:1.1.2',
+            'ch.qos.logback:logback-classic:1.1.2',
+            "com.google.guava:guava:18.0",
+
+            'org.apache.commons:commons-compress:1.8',
+            'org.apache.commons:commons-lang3:3.3.1',
+            'org.apache.commons:commons-collections4:4.0',
+            'commons-cli:commons-cli:1.2',
+            'commons-configuration:commons-configuration:1.10',
+
+            'org.ansj:tree_split:1.2',
+            'org.ansj:ansj_seg:1.3',
+            'org.ahocorasick:ahocorasick:0.2.3',
+            'edu.ucla.sspace:sspace:2.0.4',
+            'org.jgrapht:jgrapht-core:0.9.0',
+
+            'org.beanshell:bsh:2.0b4',
+            'net.sf.jwordnet:jwnl:1.4_rc3',
+            'net.sf.trove4j:trove4j:3.0.3',
+            'com.googlecode.matrix-toolkits-java:mtj:0.9.14',
+            'org.jdom:jdom:1.1',
+
+            'junit:junit:4.11',
+    )
+    //testCompile('junit:junit:4.11',)
+
+}
+
+
