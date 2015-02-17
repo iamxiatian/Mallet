@@ -45,7 +45,7 @@ public class CrossValidationIterator
      * @param r      The source of randomness to use in shuffling.
      */
     public CrossValidationIterator(InstanceList ilist, int nfolds, java.util.Random r) {
-        assert (nfolds > 0) : "nfolds: " + this.nfolds;
+        assert (nfolds > 0) : "nfolds: " + nfolds;
         this.nfolds = nfolds;
         this.index = 0;
         double fraction = (double) 1 / nfolds;

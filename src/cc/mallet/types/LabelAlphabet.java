@@ -18,13 +18,14 @@ import java.util.ArrayList;
  * @author Andrew McCallum <a href="mailto:mccallum@cs.umass.edu">mccallum@cs.umass.edu</a>
  */
 public class LabelAlphabet extends Alphabet implements Serializable {
-    ArrayList labels;
+    ArrayList<Label> labels;
 
     public LabelAlphabet() {
         super();
         this.labels = new ArrayList();
     }
 
+    @Override
     public int lookupIndex(Object entry, boolean addIfNotPresent) {
         int index = super.lookupIndex(entry, addIfNotPresent);
         if (index >= labels.size() && addIfNotPresent)
@@ -35,7 +36,7 @@ public class LabelAlphabet extends Alphabet implements Serializable {
     public Label lookupLabel(Object entry, boolean addIfNotPresent) {
         int index = lookupIndex(entry, addIfNotPresent);
         if (index >= 0)
-            return (Label) labels.get(index);
+            return labels.get(index);
         else
             return null;
     }
@@ -45,7 +46,7 @@ public class LabelAlphabet extends Alphabet implements Serializable {
     }
 
     public Label lookupLabel(int labelIndex) {
-        return (Label) labels.get(labelIndex);
+        return labels.get(labelIndex);
     }
 
 }

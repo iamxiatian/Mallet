@@ -24,6 +24,8 @@ import java.io.Serializable;
 public class PrintInputAndTarget extends Pipe implements Serializable {
     private static final long serialVersionUID = 1;
     private static final int CURRENT_SERIAL_VERSION = 0;
+    private boolean showData = true;
+
     String prefix = null;
 
     public PrintInputAndTarget(String prefix) {
@@ -35,16 +37,24 @@ public class PrintInputAndTarget extends Pipe implements Serializable {
     public PrintInputAndTarget() {
     }
 
+    public PrintInputAndTarget(boolean showData) {
+        this.showData = showData;
+    }
+
     public Instance pipe(Instance carrier) {
         if (prefix != null)
             System.out.print(prefix);
         String targetString = "<null>";
         if (carrier.getTarget() != null)
             targetString = carrier.getTarget().toString();
+
         System.out.println("name: " + carrier.getName() +
-                "\ntarget: " + targetString +
-                "\ninput: " + carrier.getData()  // Swapping order, since data often has a newline at the end -DM
-        );
+                "\ntarget: " + targetString);
+        if(showData) {
+            System.out.println("input: " + carrier.getData());  // Swapping
+            // order, since data
+            // often has a newline at the end -DM
+        };
         return carrier;
     }
 

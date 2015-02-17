@@ -5,8 +5,8 @@ apply plugin: 'application'
 group = 'cc.mallet'
 archivesBaseName = 'mallet'
 version = '2.0.9-SUMMER'
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
 
 sourceSets { 
      main { 
@@ -30,7 +30,7 @@ idea {
 
 task copyJars(type: Copy) {
     from configurations.runtime
-    into 'dist'
+    into 'build/jars'
 }
 
 repositories {
