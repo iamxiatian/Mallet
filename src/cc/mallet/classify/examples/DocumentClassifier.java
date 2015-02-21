@@ -16,12 +16,14 @@
 
 package cc.mallet.classify.examples;
 
-import cc.mallet.classify.Classifier;
-import cc.mallet.classify.ClassifierTrainer;
-import cc.mallet.classify.NaiveBayesTrainer;
+import cc.mallet.classify.*;
 import cc.mallet.pipe.*;
 import cc.mallet.pipe.iterator.FileIterator;
+import cc.mallet.types.Alphabet;
+import cc.mallet.types.Instance;
 import cc.mallet.types.InstanceList;
+import cc.mallet.types.Multinomial;
+import gnu.trove.impl.sync.TSynchronizedRandomAccessIntList;
 import org.apache.commons.cli.*;
 
 import java.io.*;
@@ -33,6 +35,7 @@ public class DocumentClassifier {
         ObjectOutputStream oos =
                 new ObjectOutputStream(new FileOutputStream(modelFile));
         oos.writeObject (classifier);
+        oos.flush();
         oos.close();
     }
 
@@ -65,7 +68,7 @@ public class DocumentClassifier {
                 new TokenSequenceRemoveStopwords(),// Remove stopwords from sequence
                 new TokenSequence2FeatureSequence(),// Replace each Token with a feature index
                 new FeatureSequence2FeatureVector(),// Collapse word order into a "feature vector"
-                new PrintInputAndTarget(false),
+                //new PrintInputAndTarget(false),
         });
         return instancePipe;
     }
@@ -75,6 +78,12 @@ public class DocumentClassifier {
         ClassifierTrainer naiveBayesTrainer = new NaiveBayesTrainer();
         Classifier classifier = naiveBayesTrainer.train(trainList);
 
+        try {
+            saveClassifier(classifier, new File("/home/xiatian/expt/fudan/bayes" +
+                    ".bin"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         System.out.println("The training accuracy is "
                 + classifier.getAccuracy(trainList));
         System.out.println("The testing accuracy is "
@@ -127,12 +136,11 @@ public class DocumentClassifier {
         InstanceList trainList = new InstanceList(instancePipe);
         trainList.addThruPipe(new FileIterator(trainDirs,
                 FileIterator.LAST_DIRECTORY));
+        
         // Create a classifier trainer, and use it to create a classifier
-        ClassifierTrainer naiveBayesTrainer = new NaiveBayesTrainer();
-        Classifier classifier = naiveBayesTrainer.train(trainList);
-
-        System.out.println("The training accuracy is "
-                + classifier.getAccuracy(trainList));
+        ClassifierTrainer<NaiveBayes> naiveBayesTrainer = new
+                NaiveBayesTrainer();
+        NaiveBayes classifier = naiveBayesTrainer.train(trainList);
         saveClassifier(classifier, modelFile);
     }
 
@@ -144,13 +152,18 @@ public class DocumentClassifier {
         testList.addThruPipe(new FileIterator(testDirs,
                 FileIterator.LAST_DIRECTORY));
 
-        Classifier classifier = loadClassifier(modelFile);
+        NaiveBayes classifier = (NaiveBayes)loadClassifier(modelFile);
 
-        System.out.println("The test accuracy is "
-                + classifier.getAccuracy(testList));
+//        double accuracy = classifier.getAccuracy(testList);
+//        System.out.println("Accuracy is " + accuracy);
+
+        Trial trial = new Trial(classifier, testList);
+
+        System.out.println("The test accuracy is " + trial.getAccuracy());
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+        DocumentClassifier classifier = new DocumentClassifier();
         HelpFormatter helpFormatter = new HelpFormatter();
         CommandLineParser parser = new PosixParser();
         Options options = new Options();
@@ -163,7 +176,7 @@ public class DocumentClassifier {
         options.addOption(new Option("test", false, "test the classifier"));
         options.addOption(new Option("f", true, "model file"));
         options.addOption(new Option("dir", true, "the directory that " +
-                "contains subdir and "  + "each subdir represents a " +
+                "contains subdir and " + "each subdir represents a " +
                 "classification"));
         options.addOption("h", "help", false, "print help for the command.");
 
@@ -177,7 +190,8 @@ public class DocumentClassifier {
             }
 
             if ((cmdLine.hasOption("train") && cmdLine.hasOption("test"))
-                    || !(cmdLine.hasOption("train") && cmdLine.hasOption(("test")))) {
+                    || (!cmdLine.hasOption("train") && !cmdLine.hasOption(
+                    ("test")))) {
                 System.out.println("Must specify train or test parameter.");
                 helpFormatter.printHelp(formatString, options);
                 return;
@@ -197,9 +211,13 @@ public class DocumentClassifier {
             File[] subDirs = dir.listFiles();
 
             if (cmdLine.hasOption("train")) {
-                new DocumentClassifier().trainClassifier(subDirs, modelFile);
+                System.out.println("train classifier from " + dir.getAbsolutePath());
+                classifier.trainClassifier(subDirs, modelFile);
+                System.out.println("Done!");
             } else {
-                new DocumentClassifier().testClassifier(modelFile, subDirs);
+                System.out.println("test classifier from " + dir.getAbsolutePath());
+                classifier.testClassifier(modelFile, subDirs);
+                System.out.println("Done!");
             }
         } catch (Exception e) {
             e.printStackTrace();

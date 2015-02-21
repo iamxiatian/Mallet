@@ -37,8 +37,10 @@ public class Trial extends ArrayList<Classification> {
     public Trial(Classifier c, InstanceList ilist) {
         super(ilist.size());
         this.classifier = c;
-        for (Instance instance : ilist)
+        for (Instance instance : ilist) {
+            Classification classification = c.classify(instance);
             this.add(c.classify(instance));
+        }
     }
 
     public boolean add(Classification c) {
@@ -78,6 +80,7 @@ public class Trial extends ArrayList<Classification> {
         for (int i = 0; i < this.size(); i++)
             if (this.get(i).bestLabelIsCorrect())
                 numCorrect++;
+
         return (double) numCorrect / this.size();
     }
 

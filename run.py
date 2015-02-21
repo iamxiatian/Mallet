@@ -9,7 +9,6 @@ def listfiles(path):
 	all_files = []
 	for file_name in cur_files:
 		full_name = os.path.abspath(os.path.join(path, file_name))
-		print full_name
 		if os.path.isdir(full_name):
 			next_level_files = listfiles(full_name)
 			all_files.extend(next_level_files)

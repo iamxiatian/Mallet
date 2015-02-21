@@ -14,3 +14,15 @@ Many of the algorithms in MALLET depend on numerical optimization. MALLET includ
 In addition to sophisticated Machine Learning applications, MALLET includes routines for transforming text documents into numerical representations that can then be processed efficiently. This process is implemented through a flexible system of "pipes", which handle distinct tasks such as tokenizing strings, removing stopwords, and converting sequences into count vectors.
 
 An add-on package to MALLET, called GRMM, contains support for inference in general graphical models, and training of CRFs with arbitrary graphical structure.
+
+
+CHANGE
+======
+
+* Add ChineseSequence2TokenSequence pipe for Chinese text processing.
+
+* Update trove4j to 3.0.3
+
+* Use gradle to replace maven
+
+* Add run.py to run java class only by class's simple name
