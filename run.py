@@ -35,7 +35,7 @@ def get_full_class_name(class_name, search_dir):
 
 	#check contains
 	for c in all_classes:
-		if c.endswith('.' + class_name):
+		if c.lower().endswith('.' + class_name.lower()):
 			return c
 
 	return class_name

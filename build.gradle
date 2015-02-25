@@ -5,8 +5,8 @@ apply plugin: 'application'
 group = 'cc.mallet'
 archivesBaseName = 'mallet'
 version = '2.0.9-SUMMER'
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 sourceSets { 
      main { 
@@ -64,6 +64,8 @@ dependencies {
             'net.sf.trove4j:trove4j:3.0.3',
             'com.googlecode.matrix-toolkits-java:mtj:0.9.14',
             'org.jdom:jdom:1.1',
+
+            'redis.clients:jedis:2.4.2',
 
             'junit:junit:4.11',
     )

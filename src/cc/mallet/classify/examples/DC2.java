@@ -19,16 +19,13 @@ package cc.mallet.classify.examples;
 import cc.mallet.classify.*;
 import cc.mallet.pipe.*;
 import cc.mallet.pipe.iterator.FileIterator;
-import cc.mallet.types.Alphabet;
-import cc.mallet.types.Instance;
 import cc.mallet.types.InstanceList;
 import cc.mallet.types.Multinomial;
-import gnu.trove.impl.sync.TSynchronizedRandomAccessIntList;
 import org.apache.commons.cli.*;
 
 import java.io.*;
 
-public class DocumentClassifier {
+public class DC2 {
 
     private void saveClassifier(Classifier classifier, File modelFile)
             throws IOException {
@@ -70,6 +67,7 @@ public class DocumentClassifier {
                 new ChineseSequence2TokenSequence(),  // Data String ->TokenSequence
                 new TokenSequenceLowercase(),          // TokenSequence words lowercased
                 new TokenSequenceRemoveStopwords(),// Remove stopwords from sequence
+                new TokenSequenceWord2Vec(),
                 new TokenSequence2FeatureSequence(),// Replace each Token with a feature index
                 new FeatureSequence2FeatureVector(),// Collapse word order into a "feature vector"
                 new PrintInputAndTarget(false),
@@ -146,6 +144,8 @@ public class DocumentClassifier {
                 NaiveBayesTrainer();
         NaiveBayes classifier = naiveBayesTrainer.train(trainList);
         saveClassifier(classifier, modelFile);
+        System.out.println("The training accuracy is "
+                + classifier.getAccuracy(trainList));
     }
 
     public void testClassifier(File modelFile, File[] testDirs) throws
@@ -169,7 +169,7 @@ public class DocumentClassifier {
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        DocumentClassifier classifier = new DocumentClassifier();
+        DC2 classifier = new DC2();
         HelpFormatter helpFormatter = new HelpFormatter();
         CommandLineParser parser = new PosixParser();
         Options options = new Options();
@@ -181,6 +181,7 @@ public class DocumentClassifier {
         options.addOption(new Option("train", false, "train the classifier"));
         options.addOption(new Option("test", false, "test the classifier"));
         options.addOption(new Option("f", true, "model file"));
+        options.addOption(new Option("wvm", true, "word2vc model file"));
         options.addOption(new Option("dir", true, "the directory that " +
                 "contains subdir and " + "each subdir represents a " +
                 "classification"));
@@ -190,7 +191,8 @@ public class DocumentClassifier {
             CommandLine cmdLine = parser.parse(options, args);
             if (cmdLine.hasOption("h")
                     || !cmdLine.hasOption("f")
-                    || !cmdLine.hasOption("dir")) {
+                    || !cmdLine.hasOption("dir")
+                    || !cmdLine.hasOption("wvm")) {
                 helpFormatter.printHelp(formatString, options);
                 return;
             }
@@ -216,6 +218,7 @@ public class DocumentClassifier {
 
             File[] subDirs = dir.listFiles();
 
+            TokenSequenceWord2Vec.load(cmdLine.getOptionValue("wvm"));
             if (cmdLine.hasOption("train")) {
                 System.out.println("train classifier from " + dir.getAbsolutePath());
                 classifier.trainClassifier(subDirs, modelFile);
